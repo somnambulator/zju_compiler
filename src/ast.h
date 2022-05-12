@@ -22,9 +22,19 @@
 
 // using namespace llvm;
 #define type_error -1
-#define type_void 1
-#define type_int 2
-#define type_float 3
+#define type_Expr 1
+#define type_void 2
+#define type_int 3
+#define type_float 4
+
+#define type_ID 100
+#define type_binaryExpr 101
+#define type_Dec 102
+#define type_DecList 103
+#define type_CallFunc 104
+#define type_FuncProto 105
+#define type_FuncBody 106
+#define type_Func 107
 
 typedef std::vector<std::unique_ptr<ExprAST>> arg_list;
 typedef std::vector<std::unique_ptr<PrototypeAST>> proto_list;
@@ -35,6 +45,7 @@ class ExprAST {
   int type;
   bool global;
 public:
+  ExprAST() : type(type_Expr){}
   virtual ~ExprAST() = default;
 
   void SetGlobal(){
@@ -109,17 +120,17 @@ class VariableExprAST : public ExprAST {
   std::string Name;
 
 public:
-  VariableExprAST(const std::string &Name) : Name(Name) {}
+  VariableExprAST(const std::string &Name) : Name(Name) {this->SetType(type_ID);}
 
   llvm::Value *codegen() override;
 };
 
-/// VariableListAST - Expression class for referencing a list of variables.
-class VariableListAST : public ExprAST{
+/// DecListAST - Expression class for referencing a list of declarations.
+class DecListAST : public ExprAST{
   arg_list VarList;
 
 public:
-  VariableListAST(arg_list List) : VarList(List) {}
+  DecListAST(arg_list List) : VarList(List) {this->SetType(type_DecList);}
 
   llvm::Value *codegen() override;
 };
@@ -133,20 +144,21 @@ public:
   DecExprAST(std::unique_ptr<VariableExprAST> Var, 
              std::unique_ptr<TypeAST> Type) : Var(std::move(Var)), Type(std::move(Type)) {
                Var->SetType(Type->getType());
+               this->SetType(type_Dec);
              }
              
   llvm::Value *codegen() override;
 };
 
-/// DefListAST - Expression class for referencing a list of definitions.
-class DefListAST : public ExprAST{
-  arg_list DefList;
+// /// DefListAST - Expression class for referencing a list of definitions.
+// class DefListAST : public ExprAST{
+//   arg_list DefList;
 
-public:
-  DefListAST(arg_list DefList) : DefList(std::move(DefList)) {}
+// public:
+//   DefListAST(arg_list DefList) : DefList(std::move(DefList)) {}
 
-  llvm::Value *codegen() override;
-};
+//   llvm::Value *codegen() override;
+// };
 
 /// BinaryExprAST - Expression class for a binary operator.
 class BinaryExprAST : public ExprAST {
@@ -156,7 +168,7 @@ class BinaryExprAST : public ExprAST {
 public:
   BinaryExprAST(std::string Op, std::unique_ptr<ExprAST> LHS,
                 std::unique_ptr<ExprAST> RHS)
-      : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+      : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {this->SetType(type_binaryExpr);}
 
   llvm::Value *codegen() override;
 };
@@ -169,7 +181,7 @@ class CallExprAST : public ExprAST {
 public:
   CallExprAST(const std::string &Callee,
               arg_list Args)
-      : Callee(Callee), Args(std::move(Args)) {}
+      : Callee(Callee), Args(std::move(Args)) {this->SetType(type_CallFunc);}
 
   llvm::Value *codegen() override;
 };
@@ -190,14 +202,15 @@ public:
 };
 
 /// BodyAST - This class represents a function body.
-class BodyAST {
+class BodyAST : public ExprAST {
   arg_list DefList;
   arg_list StmtList;
+  std::unique_ptr<ExprAST> ReturnExpr;
 
 public:
   BodyAST(arg_list DefList,
               arg_list StmtList)
-      : DefList(std::move(DefList)), StmtList(std::move(StmtList)) {}
+      : DefList(std::move(DefList)), StmtList(std::move(StmtList)) {this->SetType(type_FuncBody);}
   
   llvm::Function *codegen();
 };
@@ -206,13 +219,12 @@ public:
 class FunctionAST {
   std::unique_ptr<PrototypeAST> Proto;
   std::unique_ptr<ExprAST> Body;
-  std::unique_ptr<ExprAST> ReturnExpr;
+  // std::unique_ptr<ExprAST> ReturnExpr;
 
 public:
   FunctionAST(std::unique_ptr<PrototypeAST> Proto,
-              std::unique_ptr<ExprAST> Body,
-              std::unique_ptr<ExprAST> ReturnExpr)
-      : Proto(std::move(Proto)), Body(std::move(Body)), ReturnExpr(std::move(ReturnExpr)) {}
+              std::unique_ptr<ExprAST> Body)
+      : Proto(std::move(Proto)), Body(std::move(Body)) {}
   
   void SetReturnExpr(std::unique_ptr<ExprAST> ReturnExpr){
     ReturnExpr = std::move(ReturnExpr);

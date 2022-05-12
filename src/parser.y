@@ -63,7 +63,7 @@ ExtDef:             ExtDecList SEMI                         { //for global varia
 MainDef:            DEF MainFunDec COLON CompSt             { $$ = new FunctionAST($2, $4); }
     |               error SEMI                              {  }
     ;
-ExtDecList:         VarDec COLON Specifier                  { $1->SetGlobal; $$ = new DecExprAST($1, $3); }
+ExtDecList:         VarDec COLON Specifier                  { $1->SetGlobal(); $$ = new DecExprAST($1, $3); }
     |               VarDec COLON Specifier COMMA ExtDecList { $1->SetGlobal();
                                                               var = new DecExprAST($1, $3);
                                                               $$ = new BinaryExprAST(std::string($4), var, $5); }
@@ -102,8 +102,8 @@ VarList:            ParamDec COMMA VarList                  { $$ = $3; $$->push_
 ParamDec:           VarDec COLON Specifier                  { $$ = new DecExprAST($1, $3); }
     ; 
 // Statements
-CompSt:             LC DefList StmtList RC                  { $$ = new FunctionAST($2, $3, new VoidExprAST()); }
-    |               LC DefList StmtList ReturnStmt RC       { $$ = new FunctionAST($2, $3, $4); }
+CompSt:             LC DefList StmtList RC                  { $$ = new BodyAST($2, $3, new VoidExprAST()); }
+    |               LC DefList StmtList ReturnStmt RC       { $$ = new BodyAST($2, $3, $4); }
     |               error RC                                {  }
     ; 
 StmtList:           Stmt StmtList                           { $$ = $2; $$->push_back($1); }
@@ -122,7 +122,7 @@ ReturnStmt:         RETURN Exp SEMI                         { $$ = $2; }
 DefList:            Def DefList                             { $$ = $2; $$->push_back($1); }
     |                                                       { $$ = new arg_list(); }
     ;     
-Def:                DecList SEMI                            { $$ = new VariableListAST($1); }
+Def:                DecList SEMI                            { $$ = new DecListAST($1); }
     ; 
 DecList:            Dec                                     { $$ = new arg_list(); $$->push_back($1); }
     |               Dec COMMA DecList                       { $$ = $3; $$->push_back($1); }

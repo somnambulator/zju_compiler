@@ -51,22 +51,41 @@ llvm::Value *BinaryExprAST::codegen() {
     return Builder.CreateFMul(L, R, "multmp");
   }
   else if(Op == "/"){
-    return Builder.CreateFMul(L, R, "multmp");
+    return Builder.CreateFDiv(L, R, "divtmp");
   }
-  else if(Op == "<"){}
-    L = Builder.CreateFCmpULT(L, R, "cmptmp");
+  else if(Op == "<"){
+    L = Builder.CreateFCmpOLT(L, R, "cmptmp");
     // Convert bool 0/1 to double 0.0 or 1.0
+    return Builder.CreateUIToFP(L, llvm::Type::getDoubleTy(TheContext), "booltmp");
+  }
+  else if(Op == ">"){
+    L = Builder.CreateFCmpOGT(L, R, "cmptmp");
+    return Builder.CreateUIToFP(L, llvm::Type::getDoubleTy(TheContext), "booltmp");
+  }
+  else if(Op == "<="){
+    L = Builder.CreateFCmpOLE(L, R, "cmptmp");
+    return Builder.CreateUIToFP(L, llvm::Type::getDoubleTy(TheContext), "booltmp");
+  }
+  else if(Op == ">="){
+    L = Builder.CreateFCmpOGE(L, R, "cmptmp");
+    return Builder.CreateUIToFP(L, llvm::Type::getDoubleTy(TheContext), "booltmp");
+  }
+  else if(Op == "=="){
+    L = Builder.CreateFCmpOEQ(L, R, "cmptmp");
+    return Builder.CreateUIToFP(L, llvm::Type::getDoubleTy(TheContext), "booltmp");
+  }
+  else if(Op == "!="){
+    L = Builder.CreateFCmpONE(L, R, "cmptmp");
     return Builder.CreateUIToFP(L, llvm::Type::getDoubleTy(TheContext), "booltmp");
   }
   else{
     return LogErrorV("invalid binary operator");
   }
-  }
 }
 
-Value *CallExprAST::codegen() {
+llvm::Value *CallExprAST::codegen() {
   // Look up the name in the global module table.
-  Function *CalleeF = TheModule->getFunction(Callee);
+  llvm::Function *CalleeF = TheModule->getFunction(Callee);
   if (!CalleeF)
     return LogErrorV("Unknown function referenced");
 
@@ -74,7 +93,7 @@ Value *CallExprAST::codegen() {
   if (CalleeF->arg_size() != Args.size())
     return LogErrorV("Incorrect # arguments passed");
 
-  std::vector<Value *> ArgsV;
+  std::vector<llvm::Value *> ArgsV;
   for (unsigned i = 0, e = Args.size(); i != e; ++i) {
     ArgsV.push_back(Args[i]->codegen());
     if (!ArgsV.back())
