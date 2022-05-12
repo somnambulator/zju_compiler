@@ -40,6 +40,8 @@ llvm::Value *BinaryExprAST::codegen() {
   llvm::Value *R = RHS->codegen();
   if (!L || !R)
     return nullptr;
+  
+  
 
   if(Op == "+"){
     return Builder.CreateFAdd(L, R, "addtmp");
