@@ -1,6 +1,8 @@
 #include "./ast.h"
 #include "./util.h"
 
+static SymbolTable symbolTable;
+
 std::unique_ptr<ExprAST> LogError(const char *Str) {
   fprintf(stderr, "Error: %s\n", Str);
   return nullptr;
@@ -25,7 +27,7 @@ llvm::Value *FloatExprAST::codegen() {
 
 llvm::Value *VariableExprAST::codegen() {
   // Look this variable up in the function.
-  llvm::Value *V = NamedValues[Name];
+  llvm::Value *V = symbolTable._FindValue(Name);
   if (!V)
     return LogErrorV("Unknown variable name");
   return V;
@@ -37,8 +39,6 @@ llvm::Value *BinaryExprAST::codegen() {
   if (!L || !R)
     return nullptr;
   
-  
-
   if(Op == "+"){
     return Builder.CreateFAdd(L, R, "addtmp");
   }

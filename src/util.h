@@ -23,8 +23,8 @@ class SymbolTable {
     std::vector<std::map<std::string, llvm::Value *>*> NamedValues; //stack, for local variables
     std::map<std::string, llvm::GlobalVariable *> GlobalNamedValues;
 
-    std::vector<std::map<std::string, VariableExprAST *>*> IDTable; //stack, for local identifiers
-    std::map<std::string, VariableExprAST *> GlobalIDTable;
+    std::vector<std::map<std::string, DecExprAST *>*> IDTable; //stack, for local identifiers
+    std::map<std::string, DecExprAST *> GlobalIDTable;
 
 public:
 
@@ -32,7 +32,7 @@ public:
         GlobalNamedValues[name] = value;
     }
 
-    void addGlobalID(std::string name, VariableExprAST* Expr){
+    void addGlobalID(std::string name, DecExprAST* Expr){
         GlobalIDTable[name] = Expr;
     }
 
@@ -43,7 +43,7 @@ public:
         (*NamedValues.back())[name] = value;
     }
 
-    void addLocalID(std::string name, VariableExprAST* Expr){
+    void addLocalID(std::string name, DecExprAST* Expr){
         if (IDTable.size()<0){
             pushIDTable();
         }
@@ -55,7 +55,7 @@ public:
     }
 
     void pushIDTable(){
-        IDTable.push_back(new std::map<std::string, VariableExprAST *>());
+        IDTable.push_back(new std::map<std::string, DecExprAST *>());
     }
 
     void popNamedValue(){
@@ -68,7 +68,7 @@ public:
 
     llvm::Value *FindValue(ExprAST* Expr){
         if(Expr->getType() == type_ID){
-            std::string name = static_cast<VariableExprAST *>(Expr)->getName();
+            std::string name = static_cast<DecExprAST *>(Expr)->getName();
             llvm::Value *value = _FindValue(name);
             if (!value){
                 return _FindGlobalValue(name);
@@ -92,7 +92,7 @@ public:
         return nullptr;
     }
 
-    VariableExprAST* FindID(std::string name){
+    DecExprAST* FindID(std::string name){
         if(IDTable.back()->find(name) != IDTable.back()->end()){
             return (*IDTable.back())[name];
         }

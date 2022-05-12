@@ -156,7 +156,9 @@ public:
                name = Var->getName();
              }
   
-  std::string getName() {return Name;}
+  std::string getName() {return name;}
+  
+  int getDType() {return Type->getType();}
              
   llvm::Value *codegen() override;
 };
