@@ -35,10 +35,15 @@
 #define type_FuncProto 105
 #define type_FuncBody 106
 #define type_Func 107
+#define type_Array 108
 
 typedef std::vector<std::unique_ptr<ExprAST>> arg_list;
 typedef std::vector<std::unique_ptr<PrototypeAST>> proto_list;
 typedef std::vector<std::unique_ptr<FunctionAST>> func_list;
+
+static llvm::LLVMContext TheContext;
+static llvm::IRBuilder<> Builder(TheContext);
+static std::unique_ptr<llvm::Module> TheModule;
 
 /// ExprAST - Base class for all expression nodes.
 class ExprAST {
@@ -122,6 +127,8 @@ class VariableExprAST : public ExprAST {
 public:
   VariableExprAST(const std::string &Name) : Name(Name) {this->SetType(type_ID);}
 
+  std::string getName() {return Name;}
+
   llvm::Value *codegen() override;
 };
 
@@ -139,13 +146,17 @@ public:
 class DecExprAST : public ExprAST{
   std::unique_ptr<VariableExprAST> Var;
   std::unique_ptr<TypeAST> Type;
+  std::string name;
 
 public:
   DecExprAST(std::unique_ptr<VariableExprAST> Var, 
              std::unique_ptr<TypeAST> Type) : Var(std::move(Var)), Type(std::move(Type)) {
                Var->SetType(Type->getType());
                this->SetType(type_Dec);
+               name = Var->getName();
              }
+  
+  std::string getName() {return Name;}
              
   llvm::Value *codegen() override;
 };

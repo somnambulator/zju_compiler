@@ -1,9 +1,5 @@
 #include "./ast.h"
-
-static llvm::LLVMContext TheContext;
-static llvm::IRBuilder<> Builder(TheContext);
-static std::unique_ptr<llvm::Module> TheModule;
-static std::map<std::string, llvm::Value *> NamedValues;
+#include "./util.h"
 
 std::unique_ptr<ExprAST> LogError(const char *Str) {
   fprintf(stderr, "Error: %s\n", Str);
