@@ -48,14 +48,14 @@ extern int yyparse(yyFlexLexer* yyflex);
 %%
 
 // High-level Definitions
-Program:            ExtDefList                              { $$ = new PrototypeAST($1); }
+Program:            ExtDefList                              { $$ = new ProgramAST($1); }
     ; 
 ExtDefList:         ExtDef ExtDefList                       { $$ = $2; $$->push_back($1); }
-    |               MainDef                                 { $$ = new func_list();
+    |               MainDef                                 { $$ = new ast_list();
                                                               $$->push_back($1); }
-    |                                                       {  } 
+    |                                                       { $$ = new ast_list(); } 
     ; 
-ExtDef:             ExtDecList SEMI                         { //for global variable declaration }
+ExtDef:             ExtDecList SEMI                         { $$ = new GlobalDecListAST($1); }
     |               Specifier SEMI                          { //for struct }
     |               DEF FunDec COLON CompSt                 { $$ = new FunctionAST($2, $4); }
     |               error SEMI                              {  }
@@ -63,10 +63,8 @@ ExtDef:             ExtDecList SEMI                         { //for global varia
 MainDef:            DEF MainFunDec COLON CompSt             { $$ = new FunctionAST($2, $4); }
     |               error SEMI                              {  }
     ;
-ExtDecList:         VarDec COLON Specifier                  { $1->SetGlobal(); $$ = new DecExprAST($1, $3); }
-    |               VarDec COLON Specifier COMMA ExtDecList { $1->SetGlobal();
-                                                              var = new DecExprAST($1, $3);
-                                                              $$ = new BinaryExprAST(std::string($4), var, $5); }
+ExtDecList:         VarDec COLON Specifier                  { $$ = new dec_list(); $$->push_back(new DecExprAST($1, $3)); }
+    |               VarDec COLON Specifier COMMA ExtDecList { $$ = $5; $$->push_back(new DecExprAST($1, $3)); }
     ; 
 
 // Specifiers
@@ -91,13 +89,13 @@ FunDec:             ID LP VarList RP                        { $$ = new Prototype
     |               ID LP RP                                {  }
     |               error RP                                {  }
     ; 
-MainFunDec:         MAIN LP RP                              { args = new arg_list(); 
+MainFunDec:         MAIN LP RP                              { args = new ast_list(); 
                                                               args->push_back(new VoidExprAST());
                                                               $$ = new PrototypeAST(std::string("main"), args); }
     |               error RP                                {  }
     ; 
 VarList:            ParamDec COMMA VarList                  { $$ = $3; $$->push_back($1); }
-    |               ParamDec                                { $$ = new arg_list(); $$->push_back($1); }
+    |               ParamDec                                { $$ = new ast_list(); $$->push_back($1); }
     ; 
 ParamDec:           VarDec COLON Specifier                  { $$ = new DecExprAST($1, $3); }
     ; 
@@ -107,7 +105,7 @@ CompSt:             LC DefList StmtList RC                  { $$ = new BodyAST($
     |               error RC                                {  }
     ; 
 StmtList:           Stmt StmtList                           { $$ = $2; $$->push_back($1); }
-    |                                                       { $$ = new arg_list(); }
+    |                                                       { $$ = new ast_list(); }
     ; 
 Stmt:               Exp SEMI                                { $$ = $1; }
     |               CompSt                                  { $$ = $1; }   
@@ -120,19 +118,18 @@ ReturnStmt:         RETURN Exp SEMI                         { $$ = $2; }
     |               RETURN SEMI                             { $$ = new VoidExprAST(); }
 // Local Definitions
 DefList:            Def DefList                             { $$ = $2; $$->push_back($1); }
-    |                                                       { $$ = new arg_list(); }
+    |                                                       { $$ = new ast_list(); }
     ;     
 Def:                DecList SEMI                            { $$ = new DecListAST($1); }
     ; 
-DecList:            Dec                                     { $$ = new arg_list(); $$->push_back($1); }
+DecList:            Dec                                     { $$ = new dec_list(); $$->push_back($1); }
     |               Dec COMMA DecList                       { $$ = $3; $$->push_back($1); }
     ; 
 Dec:                VarDec COLON Specifier                  { $$ = new DecExprAST($1, $3); }
-    |               VarDec COLON Specifier ASSIGNOP Exp     { var = new DecExprAST($1, $3);
-                                                              $$ = new BinaryExprAST(std::string($4), var, $5); }
+    |               VarDec COLON Specifier ASSIGNOP Exp     { $$ = new DecExprAST($1, $3, $5); }
     ; 
 //7.1.7 Expressions
-Exp:                Exp ASSIGNOP Exp                        { $$ = new BinaryExprAST(std::string($2), $1, $3); }
+Exp:                Exp ASSIGNOP Exp                        { $$ = new AssignExprAST(std::string($2), $1, $3); }
     |               Exp AND Exp                             { $$ = new BinaryExprAST(std::string($2), $1, $3); }
     |               Exp OR Exp                              { $$ = new BinaryExprAST(std::string($2), $1, $3); }
     |               Exp RELOP Exp                           { $$ = new BinaryExprAST(std::string($2), $1, $3); }
@@ -152,7 +149,7 @@ Exp:                Exp ASSIGNOP Exp                        { $$ = new BinaryExp
     |               FLOAT                                   { $$ = new FloatExprAST($1); }
     ; 
 Args :              Exp COMMA Args                          { $$ = $3; $$->push_back($1); }
-    |               Exp                                     { $$ = new arg_list(); $$->push_back($1); }
+    |               Exp                                     { $$ = new ast_list(); $$->push_back($1); }
     ; 
 %%
 

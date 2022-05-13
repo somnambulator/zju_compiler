@@ -22,11 +22,12 @@
 
 // using namespace llvm;
 #define type_error -1
-#define type_Expr 1
-#define type_void 2
+#define type_void 1
+#define type_bool 2
 #define type_int 3
 #define type_float 4
 
+#define type_Expr 99
 #define type_ID 100
 #define type_binaryExpr 101
 #define type_Dec 102
@@ -36,10 +37,13 @@
 #define type_FuncBody 106
 #define type_Func 107
 #define type_Array 108
+#define type_assignExpr 109
+#define type_GlobalDec 110
 
-typedef std::vector<std::unique_ptr<ExprAST>> arg_list;
-typedef std::vector<std::unique_ptr<PrototypeAST>> proto_list;
-typedef std::vector<std::unique_ptr<FunctionAST>> func_list;
+typedef std::vector<std::unique_ptr<ExprAST>> ast_list;
+typedef std::vector<std::unique_ptr<DecExprAST>> dec_list;
+// typedef std::vector<std::unique_ptr<PrototypeAST>> proto_list;
+// typedef std::vector<std::unique_ptr<FunctionAST>> func_list;
 
 static llvm::LLVMContext TheContext;
 static llvm::IRBuilder<> Builder(TheContext);
@@ -132,12 +136,23 @@ public:
   llvm::Value *codegen() override;
 };
 
-/// DecListAST - Expression class for referencing a list of declarations.
-class DecListAST : public ExprAST{
-  arg_list VarList;
+/// GlobalDecListAST - Expression class for referencing a list of global declarations
+/// ATTENTION: Global decalarations with assignments are not allowed!
+class GlobalDecListAST : public ExprAST{
+  ast_list VarList;
 
 public:
-  DecListAST(arg_list List) : VarList(List) {this->SetType(type_DecList);}
+  GlobalDecListAST(ast_list List) : VarList(List) {this->SetType(type_GlobalDec);}
+
+  llvm::Value *codegen() override;
+};
+
+/// DecListAST - Expression class for referencing a list of declarations.
+class DecListAST : public ExprAST{
+  ast_list VarList;
+
+public:
+  DecListAST(ast_list List) : VarList(List) {this->SetType(type_DecList);}
 
   llvm::Value *codegen() override;
 };
@@ -165,13 +180,26 @@ public:
 
 // /// DefListAST - Expression class for referencing a list of definitions.
 // class DefListAST : public ExprAST{
-//   arg_list DefList;
+//   ast_list DefList;
 
 // public:
-//   DefListAST(arg_list DefList) : DefList(std::move(DefList)) {}
+//   DefListAST(ast_list DefList) : DefList(std::move(DefList)) {}
 
 //   llvm::Value *codegen() override;
 // };
+
+/// AssignExprAST - Expression class for a binary operator.
+class AssignExprAST : public ExprAST {
+  std::string Op;
+  std::unique_ptr<ExprAST> LHS, RHS;
+
+public:
+  AssignExprAST(std::string Op, std::unique_ptr<ExprAST> LHS,
+                std::unique_ptr<ExprAST> RHS)
+      : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {this->SetType(type_assignExpr);}
+
+  llvm::Value *codegen() override;
+};
 
 /// BinaryExprAST - Expression class for a binary operator.
 class BinaryExprAST : public ExprAST {
@@ -189,11 +217,11 @@ public:
 /// CallExprAST - Expression class for function calls.
 class CallExprAST : public ExprAST {
   std::string Callee;
-  arg_list Args;
+  ast_list Args;
 
 public:
   CallExprAST(const std::string &Callee,
-              arg_list Args)
+              ast_list Args)
       : Callee(Callee), Args(std::move(Args)) {this->SetType(type_CallFunc);}
 
   llvm::Value *codegen() override;
@@ -202,13 +230,13 @@ public:
 /// PrototypeAST - This class represents the "prototype" for a function,
 /// which captures its name, and its argument names (thus implicitly the number
 /// of arguments the function takes).
-class PrototypeAST {
+class PrototypeAST : public ExprAST{
   std::string Name;
-  arg_list Args;
+  ast_list Args;
 
 public:
-  PrototypeAST(const std::string &Name, arg_list Args)
-      : Name(Name), Args(std::move(Args)) {}
+  PrototypeAST(const std::string &Name, ast_list Args)
+      : Name(Name), Args(std::move(Args)) {this->SetType(type_FuncProto);}
 
   llvm::Function *codegen();
   const std::string &getName() const { return Name; }
@@ -216,20 +244,20 @@ public:
 
 /// BodyAST - This class represents a function body.
 class BodyAST : public ExprAST {
-  arg_list DefList;
-  arg_list StmtList;
+  ast_list DefList;
+  ast_list StmtList;
   std::unique_ptr<ExprAST> ReturnExpr;
 
 public:
-  BodyAST(arg_list DefList,
-              arg_list StmtList)
+  BodyAST(ast_list DefList,
+              ast_list StmtList)
       : DefList(std::move(DefList)), StmtList(std::move(StmtList)) {this->SetType(type_FuncBody);}
   
   llvm::Function *codegen();
 };
 
 /// FunctionAST - This class represents a function definition itself.
-class FunctionAST {
+class FunctionAST : public ExprAST {
   std::unique_ptr<PrototypeAST> Proto;
   std::unique_ptr<ExprAST> Body;
   // std::unique_ptr<ExprAST> ReturnExpr;
@@ -237,7 +265,7 @@ class FunctionAST {
 public:
   FunctionAST(std::unique_ptr<PrototypeAST> Proto,
               std::unique_ptr<ExprAST> Body)
-      : Proto(std::move(Proto)), Body(std::move(Body)) {}
+      : Proto(std::move(Proto)), Body(std::move(Body)) {this->SetType(type_Func);}
   
   void SetReturnExpr(std::unique_ptr<ExprAST> ReturnExpr){
     ReturnExpr = std::move(ReturnExpr);
@@ -248,10 +276,10 @@ public:
 
 /// PorgramAST - This class represents a Program, also used as root.
 class ProgramAST {
-  func_list FuncList;
+  ast_list ElementList;
 
 public:
-  ProgramAST(func_list FuncList) : FuncList(std::move(FuncList)) {}
+  ProgramAST(ast_list List) : ElementList(std::move(List)) {}
   
   llvm::Function *codegen();
 };

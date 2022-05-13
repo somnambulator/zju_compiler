@@ -13,8 +13,25 @@ llvm::Value *LogErrorV(const char *Str) {
   return nullptr;
 }
 
+llvm::Type *typeGen(int type){
+  switch (type){
+    case type_void:
+      return llvm::Type::getVoidTy(TheContext);
+    case type_bool:
+      return llvm::Type::getInt1Ty(TheContext);
+    case type_int:
+      return llvm::Type::getInt32Ty(TheContext);
+    case type_float:
+      return llvm::Type::getFloatTy(TheContext);
+    default:
+      return llvm::Type::getInt32Ty(TheContext);
+  }
+}
+
 llvm::Value *TypeAST::codegen() {
     //TODO: COMPLETE TYPEAST
+    //nothing to do
+    return nullptr;
 }
 
 llvm::Value *IntExprAST::codegen() {
@@ -25,12 +42,29 @@ llvm::Value *FloatExprAST::codegen() {
   return llvm::ConstantFP::get(TheContext, llvm::APFloat(Val));
 }
 
+llvm::Value *VoidExprAST::codegen() {
+  return llvm::ConstantPointerNull::getNullValue(typeGen(type_int));
+}
+
 llvm::Value *VariableExprAST::codegen() {
   // Look this variable up in the function.
   llvm::Value *V = symbolTable._FindValue(Name);
-  if (!V)
-    return LogErrorV("Unknown variable name");
-  return V;
+  if (!V){
+    llvm::GlobalVariable *GV = symbolTable._FindGlobalValue(Name);
+    if(!GV) return LogErrorV("Unknown variable name");
+    else return Builder.CreateLoad(GV, Name.c_str());
+  }
+  return Builder.CreateLoad(V, Name.c_str());
+}
+
+llvm::Value *DecListAST::codegen(){
+  for (int i = 0;i<VarList.size();i++){
+    VarList[i]->codegen();
+  }
+}
+
+llvm::Value *DecExprAST::codegen(){
+
 }
 
 llvm::Value *BinaryExprAST::codegen() {
@@ -38,43 +72,109 @@ llvm::Value *BinaryExprAST::codegen() {
   llvm::Value *R = RHS->codegen();
   if (!L || !R)
     return nullptr;
+
+  int LType = LHS->getType();
+  if(LHS->getType()==type_ID){
+    std::string name = static_cast<VariableExprAST*>(LHS.get())->getName();
+    LType = symbolTable.FindID(name)->getDType();
+  }
+
+  int RType = RHS->getType();
+  if(RHS->getType()==type_ID){
+    std::string name = static_cast<VariableExprAST*>(RHS.get())->getName();
+    RType = symbolTable.FindID(name)->getDType();
+  }
+
+  int ThisType;
+  if (Op=="+" || Op=="-" || Op=="*"){
+    ThisType = (LType > RType)? LType : RType;
+    if(LType<ThisType){
+      if (LType == type_bool) L = Builder.CreateUIToFP(L, typeGen(ThisType));
+      else L = Builder.CreateSIToFP(L, typeGen(ThisType));
+    }
+    if(RType<ThisType){
+      if (RType == type_bool) R = Builder.CreateUIToFP(R, typeGen(ThisType));
+      else R = Builder.CreateSIToFP(R, typeGen(ThisType));
+    }
+  }
+  else if(Op=="/"){
+    ThisType = type_float;
+    if(LType<ThisType){
+      if (LType == type_bool) L = Builder.CreateUIToFP(L, typeGen(ThisType));
+      else L = Builder.CreateSIToFP(L, typeGen(ThisType));
+    }
+    if(RType<ThisType){
+      if (RType == type_bool) R = Builder.CreateUIToFP(R, typeGen(ThisType));
+      else R = Builder.CreateSIToFP(R, typeGen(ThisType));
+    }
+  }
+  else if(Op=="<" || Op==">" || Op=="<=" || Op==">=" || Op=="==" || Op=="!="){
+    ThisType = type_bool;
+  }
   
+  // recursively set type
+  this->SetType(ThisType);
+
+  // do arithmetic
   if(Op == "+"){
-    return Builder.CreateFAdd(L, R, "addtmp");
+    return (ThisType==type_float)? Builder.CreateFAdd(L, R, "addtmp"): Builder.CreateAdd(L, R, "addtmp");
   }
   else if(Op == "-"){
-    return Builder.CreateFSub(L, R, "subtmp");
+    return (ThisType==type_float)? Builder.CreateFSub(L, R, "subtmp"): Builder.CreateSub(L, R, "subtmp");
   }
   else if(Op == "*"){
-    return Builder.CreateFMul(L, R, "multmp");
+    return (ThisType==type_float)? Builder.CreateFMul(L, R, "multmp"): Builder.CreateMul(L, R, "multmp");
   }
   else if(Op == "/"){
-    return Builder.CreateFDiv(L, R, "divtmp");
+    return (ThisType==type_float)? Builder.CreateFDiv(L, R, "divtmp"): Builder.CreateFDiv(L, R, "divtmp");
   }
   else if(Op == "<"){
-    L = Builder.CreateFCmpOLT(L, R, "cmptmp");
-    // Convert bool 0/1 to double 0.0 or 1.0
-    return Builder.CreateUIToFP(L, llvm::Type::getDoubleTy(TheContext), "booltmp");
+    if (ThisType==type_float){
+      return Builder.CreateFCmpOLT(L, R, "cmptmp");
+    }
+    else{
+      return Builder.CreateICmpSLT(L, R, "cmptmp");
+    }
   }
   else if(Op == ">"){
-    L = Builder.CreateFCmpOGT(L, R, "cmptmp");
-    return Builder.CreateUIToFP(L, llvm::Type::getDoubleTy(TheContext), "booltmp");
+    if (ThisType==type_float){
+      return Builder.CreateFCmpOGT(L, R, "cmptmp");
+    }
+    else{
+      return Builder.CreateICmpSGT(L, R, "cmptmp");
+    }
   }
   else if(Op == "<="){
-    L = Builder.CreateFCmpOLE(L, R, "cmptmp");
-    return Builder.CreateUIToFP(L, llvm::Type::getDoubleTy(TheContext), "booltmp");
+    if (ThisType==type_float){
+      return Builder.CreateFCmpOLE(L, R, "cmptmp");
+    }
+    else{
+      return Builder.CreateICmpSLE(L, R, "cmptmp");
+    }
   }
   else if(Op == ">="){
-    L = Builder.CreateFCmpOGE(L, R, "cmptmp");
-    return Builder.CreateUIToFP(L, llvm::Type::getDoubleTy(TheContext), "booltmp");
+    if (ThisType==type_float){
+      return Builder.CreateFCmpOGE(L, R, "cmptmp");
+    }
+    else{
+      return Builder.CreateICmpSGE(L, R, "cmptmp");
+    }
   }
   else if(Op == "=="){
-    L = Builder.CreateFCmpOEQ(L, R, "cmptmp");
-    return Builder.CreateUIToFP(L, llvm::Type::getDoubleTy(TheContext), "booltmp");
+    if (ThisType==type_float){
+      return Builder.CreateFCmpOEQ(L, R, "cmptmp");
+    }
+    else{
+      return Builder.CreateICmpEQ(L, R, "cmptmp");
+    }
   }
   else if(Op == "!="){
-    L = Builder.CreateFCmpONE(L, R, "cmptmp");
-    return Builder.CreateUIToFP(L, llvm::Type::getDoubleTy(TheContext), "booltmp");
+    if (ThisType==type_float){
+      return Builder.CreateFCmpONE(L, R, "cmptmp");
+    }
+    else{
+      return Builder.CreateICmpNE(L, R, "cmptmp");
+    }
   }
   else{
     return LogErrorV("invalid binary operator");
@@ -101,14 +201,14 @@ llvm::Value *CallExprAST::codegen() {
   return Builder.CreateCall(CalleeF, ArgsV, "calltmp");
 }
 
-Function *PrototypeAST::codegen() {
+llvm::Function *PrototypeAST::codegen() {
   // Make the function type:  double(double,double) etc.
-  std::vector<Type *> Doubles(Args.size(), Type::getDoubleTy(TheContext));
-  FunctionType *FT =
-      FunctionType::get(Type::getDoubleTy(TheContext), Doubles, false);
+  std::vector<llvm::Type *> Doubles(Args.size(), llvm::Type::getDoubleTy(TheContext));
+  llvm::FunctionType *FT =
+      llvm::FunctionType::get(llvm::Type::getDoubleTy(TheContext), Doubles, false);
 
-  Function *F =
-      Function::Create(FT, Function::ExternalLinkage, Name, TheModule.get());
+  llvm::Function *F =
+      llvm::Function::Create(FT, llvm::Function::ExternalLinkage, Name, TheModule.get());
 
   // Set names for all arguments.
   unsigned Idx = 0;
@@ -118,9 +218,9 @@ Function *PrototypeAST::codegen() {
   return F;
 }
 
-Function *FunctionAST::codegen() {
+llvm::Function *FunctionAST::codegen() {
   // First, check for an existing function from a previous 'extern' declaration.
-  Function *TheFunction = TheModule->getFunction(Proto->getName());
+  llvm::Function *TheFunction = TheModule->getFunction(Proto->getName());
 
   if (!TheFunction)
     TheFunction = Proto->codegen();
@@ -129,15 +229,15 @@ Function *FunctionAST::codegen() {
     return nullptr;
 
   // Create a new basic block to start insertion into.
-  BasicBlock *BB = BasicBlock::Create(TheContext, "entry", TheFunction);
+  llvm::BasicBlock *BB = llvm::BasicBlock::Create(TheContext, "entry", TheFunction);
   Builder.SetInsertPoint(BB);
 
   // Record the function arguments in the NamedValues map.
-  NamedValues.clear();
-  for (auto &Arg : TheFunction->args())
-    NamedValues[Arg.getName()] = &Arg;
+  // NamedValues.clear();
+  // for (auto &Arg : TheFunction->args())
+  //   NamedValues[Arg.getName()] = &Arg;
 
-  if (Value *RetVal = Body->codegen()) {
+  if (llvm::Value *RetVal = Body->codegen()) {
     // Finish off the function.
     Builder.CreateRet(RetVal);
 
