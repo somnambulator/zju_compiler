@@ -24,10 +24,10 @@
 #define type_error -1
 #define type_void 1
 #define type_bool 2
-#define type_int 3
-#define type_float 4
+#define type_char 3
+#define type_int 4
+#define type_float 5
 
-#define type_Expr 99
 #define type_ID 100
 #define type_binaryExpr 101
 #define type_Dec 102
@@ -39,9 +39,10 @@
 #define type_Array 108
 #define type_assignExpr 109
 #define type_GlobalDec 110
+#define type_Expr 111
 
 typedef std::vector<std::unique_ptr<ExprAST>> ast_list;
-typedef std::vector<std::unique_ptr<DecExprAST>> dec_list;
+// typedef std::vector<std::unique_ptr<DecExprAST>> dec_list;
 // typedef std::vector<std::unique_ptr<PrototypeAST>> proto_list;
 // typedef std::vector<std::unique_ptr<FunctionAST>> func_list;
 
@@ -71,6 +72,12 @@ public:
     } 
     else if (TypeName == "float"){
       this->SetType(type_float);
+    }
+    else if (TypeName == "bool"){
+      this->SetType(type_bool);
+    }
+    else if (TypeName == "void"){
+      this->SetType(type_void);
     }
     else{
       this->SetType(type_error);
@@ -190,13 +197,13 @@ public:
 
 /// AssignExprAST - Expression class for a binary operator.
 class AssignExprAST : public ExprAST {
-  std::string Op;
+  // we have to tell the type of LHS(can be VariableExprAST or DecExprAST)
   std::unique_ptr<ExprAST> LHS, RHS;
 
 public:
-  AssignExprAST(std::string Op, std::unique_ptr<ExprAST> LHS,
+  AssignExprAST(std::unique_ptr<ExprAST> LHS,
                 std::unique_ptr<ExprAST> RHS)
-      : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {this->SetType(type_assignExpr);}
+      : LHS(std::move(LHS)), RHS(std::move(RHS)) {this->SetType(type_assignExpr);}
 
   llvm::Value *codegen() override;
 };
@@ -224,6 +231,8 @@ public:
               ast_list Args)
       : Callee(Callee), Args(std::move(Args)) {this->SetType(type_CallFunc);}
 
+  std::string getCallee() {return Callee;}
+
   llvm::Value *codegen() override;
 };
 
@@ -231,12 +240,15 @@ public:
 /// which captures its name, and its argument names (thus implicitly the number
 /// of arguments the function takes).
 class PrototypeAST : public ExprAST{
+  std::unique_ptr<TypeAST> retType;
   std::string Name;
   ast_list Args;
 
 public:
-  PrototypeAST(const std::string &Name, ast_list Args)
-      : Name(Name), Args(std::move(Args)) {this->SetType(type_FuncProto);}
+  PrototypeAST(std::unique_ptr<TypeAST> retType, const std::string &Name, ast_list Args)
+      : retType(std::move(retType)), Name(Name), Args(std::move(Args)) {this->SetType(type_FuncProto);}
+
+  int getRetType() {return retType->getType();}
 
   llvm::Function *codegen();
   const std::string &getName() const { return Name; }
@@ -253,7 +265,7 @@ public:
               ast_list StmtList)
       : DefList(std::move(DefList)), StmtList(std::move(StmtList)) {this->SetType(type_FuncBody);}
   
-  llvm::Function *codegen();
+  llvm::Value *codegen();
 };
 
 /// FunctionAST - This class represents a function definition itself.

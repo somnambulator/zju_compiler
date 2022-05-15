@@ -18,32 +18,39 @@
 #include <map>
 #include "./ast.h"
 
+//NOTE: every VariableExprAST that inserted into the symbol table get it's type changed into data type rather than type_ID
 
 class SymbolTable {
-    std::vector<std::map<std::string, llvm::Value *>*> NamedValues; //stack, for local variables
+    std::vector<std::map<std::string, llvm::AllocaInst *>*> NamedValues; //stack, for local variables
     std::map<std::string, llvm::GlobalVariable *> GlobalNamedValues;
 
-    std::vector<std::map<std::string, DecExprAST *>*> IDTable; //stack, for local identifiers
-    std::map<std::string, DecExprAST *> GlobalIDTable;
+    std::vector<std::map<std::string, VariableExprAST *>*> IDTable; //stack, for local identifiers
+    std::map<std::string, VariableExprAST *> GlobalIDTable;
+
+    std::map<std::string, PrototypeAST *> PrototypeTable; 
 
 public:
+
+    int getType(std::string name){
+        return FindID(name)->getType();
+    }
 
     void addGlobalVal(std::string name, llvm::GlobalVariable * value){
         GlobalNamedValues[name] = value;
     }
 
-    void addGlobalID(std::string name, DecExprAST* Expr){
+    void addGlobalID(std::string name, VariableExprAST* Expr){
         GlobalIDTable[name] = Expr;
     }
 
-    void addLocalVal(std::string name, llvm::Value * value){
+    void addLocalVal(std::string name, llvm::AllocaInst * value){
         if (NamedValues.size()<0){
             pushNamedValue();
         }
         (*NamedValues.back())[name] = value;
     }
 
-    void addLocalID(std::string name, DecExprAST* Expr){
+    void addLocalID(std::string name, VariableExprAST* Expr){
         if (IDTable.size()<0){
             pushIDTable();
         }
@@ -51,11 +58,11 @@ public:
     }
 
     void pushNamedValue(){
-        NamedValues.push_back(new std::map<std::string, llvm::Value *>());
+        NamedValues.push_back(new std::map<std::string, llvm::AllocaInst *>());
     }
 
     void pushIDTable(){
-        IDTable.push_back(new std::map<std::string, DecExprAST *>());
+        IDTable.push_back(new std::map<std::string, VariableExprAST *>());
     }
 
     void popNamedValue(){
@@ -66,15 +73,23 @@ public:
         if (IDTable.size()>0) IDTable.pop_back();
     }
 
-    llvm::Value *FindValue(ExprAST* Expr){
-        if(Expr->getType() == type_ID){
-            std::string name = static_cast<DecExprAST *>(Expr)->getName();
-            llvm::Value *value = _FindValue(name);
-            if (!value){
-                return _FindGlobalValue(name);
-            }
-            return value;
+    void addProtoType(std::string name, PrototypeAST * proto){
+        PrototypeTable[name] = proto;
+    }
+
+    PrototypeAST* getProtoType(std::string name){
+        if(PrototypeTable.find(name) != PrototypeTable.end()){
+            return PrototypeTable[name];
         }
+        return nullptr;
+    }
+
+    llvm::Value *FindValue(std::string name){
+        llvm::Value *value = _FindValue(name);
+        if (!value){
+            return _FindGlobalValue(name);
+        }
+        return value;
         return nullptr;
     }
 
@@ -92,7 +107,7 @@ public:
         return nullptr;
     }
 
-    DecExprAST* FindID(std::string name){
+    VariableExprAST* FindID(std::string name){
         if(IDTable.back()->find(name) != IDTable.back()->end()){
             return (*IDTable.back())[name];
         }

@@ -19,7 +19,7 @@ extern int yyparse(yyFlexLexer* yyflex);
     char* op; 
 }
 
-%token COLON SEMICOLON COMMA LC RC
+%token COLON SEMICOLON COMMA LC RC FUNCSPEC
 %token DEF RETURN MAIN
 %token <name> ID
 %token <int_val> INT
@@ -63,7 +63,7 @@ ExtDef:             ExtDecList SEMI                         { $$ = new GlobalDec
 MainDef:            DEF MainFunDec COLON CompSt             { $$ = new FunctionAST($2, $4); }
     |               error SEMI                              {  }
     ;
-ExtDecList:         VarDec COLON Specifier                  { $$ = new dec_list(); $$->push_back(new DecExprAST($1, $3)); }
+ExtDecList:         VarDec COLON Specifier                  { $$ = new ast_list(); $$->push_back(new DecExprAST($1, $3)); }
     |               VarDec COLON Specifier COMMA ExtDecList { $$ = $5; $$->push_back(new DecExprAST($1, $3)); }
     ; 
 
@@ -85,13 +85,13 @@ VarDec:             ID                                      { $$ = new VariableE
     |               VarDec LB INT RB                        { //for array }
     |               error RB                                {  }
     ; 
-FunDec:             ID LP VarList RP                        { $$ = new PrototypeAST(std::string($1), $3); }
+FunDec:             ID LP VarList RP FUNCSPEC Specifier     { $$ = new PrototypeAST($6, std::string($1), $3); }
     |               ID LP RP                                {  }
     |               error RP                                {  }
     ; 
-MainFunDec:         MAIN LP RP                              { args = new ast_list(); 
+MainFunDec:         MAIN LP RP FUNCSPEC Specifier           { args = new ast_list(); 
                                                               args->push_back(new VoidExprAST());
-                                                              $$ = new PrototypeAST(std::string("main"), args); }
+                                                              $$ = new PrototypeAST($5, std::string("main"), args); }
     |               error RP                                {  }
     ; 
 VarList:            ParamDec COMMA VarList                  { $$ = $3; $$->push_back($1); }
@@ -122,14 +122,15 @@ DefList:            Def DefList                             { $$ = $2; $$->push_
     ;     
 Def:                DecList SEMI                            { $$ = new DecListAST($1); }
     ; 
-DecList:            Dec                                     { $$ = new dec_list(); $$->push_back($1); }
+DecList:            Dec                                     { $$ = new ast_list(); $$->push_back($1); }
     |               Dec COMMA DecList                       { $$ = $3; $$->push_back($1); }
     ; 
 Dec:                VarDec COLON Specifier                  { $$ = new DecExprAST($1, $3); }
-    |               VarDec COLON Specifier ASSIGNOP Exp     { $$ = new DecExprAST($1, $3, $5); }
+    |               VarDec COLON Specifier ASSIGNOP Exp     { var = new DecExprAST($1, $3); 
+                                                              $$ = new AssignExprAST(var, $5); }
     ; 
 //7.1.7 Expressions
-Exp:                Exp ASSIGNOP Exp                        { $$ = new AssignExprAST(std::string($2), $1, $3); }
+Exp:                Exp ASSIGNOP Exp                        { $$ = new AssignExprAST($1, $3); }
     |               Exp AND Exp                             { $$ = new BinaryExprAST(std::string($2), $1, $3); }
     |               Exp OR Exp                              { $$ = new BinaryExprAST(std::string($2), $1, $3); }
     |               Exp RELOP Exp                           { $$ = new BinaryExprAST(std::string($2), $1, $3); }
@@ -139,7 +140,7 @@ Exp:                Exp ASSIGNOP Exp                        { $$ = new AssignExp
     |               Exp DIV Exp                             { $$ = new BinaryExprAST(std::string($2), $1, $3); }
     |               LP Exp RP                               { $$ = $2; }
     |               MINUS Exp                               { $$ = new BinaryExprAST(std::string($1), new IntExprAST(0), $2); }
-    |               NOT Exp                                 { $$ = new BinaryExprAST(std::string($1), new ExprAST(), $2); }
+    |               NOT Exp                                 { $$ = new BinaryExprAST(std::string($1), new VoidExprAST(), $2); }
     |               ID LP Args RP                           { $$ = new CallExprAST($1, $3); }
     |               ID LP RP                                { $$ = new CallExprAST($1, new VoidExprAST()); }
     |               Exp LB Exp RB                           { //for array }
