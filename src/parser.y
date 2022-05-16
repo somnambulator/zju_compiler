@@ -7,6 +7,8 @@
 
 // using namespace std;
 
+ProgramAST* Program;
+
 extern int yyparse(yyFlexLexer* yyflex);
 %}
 
@@ -17,6 +19,16 @@ extern int yyparse(yyFlexLexer* yyflex);
 
     string* name;
     char* op; 
+
+    ast_list* AST_list;
+    ExprAST* exprAST;
+    FunctionAST* functionAST;
+    TypeAST* typeAST;
+    PrototypeAST* prototypeAST;
+    BodyAST* bodyAST;
+    VariableExprAST* variableexprAST;
+    DecExprAST* decexprAST;
+    DecListAST* declistAST;
 }
 
 %token COLON SEMICOLON COMMA LC RC FUNCSPEC
@@ -31,6 +43,15 @@ extern int yyparse(yyFlexLexer* yyflex);
 // %type <> CompSt StmtList Stmt                   //  Statements
 // %type <> DefList Def Dec DecList                //  Local Definitions
 // %type <> Exp Args                               //  Expressions
+%type <AST_list> ExtDefList ExtDecList VarList DefList StmtList DecList Args
+%type <exprAST> ExtDef ReturnStmt Exp Stmt
+%type <functionAST> MainDef
+%type <typeAST> Specifier
+%type <prototypeAST> FunDec
+%type <bodyAST> CompSt
+%type <variableexprAST> VarDec
+%type <decexprAST> ParamDec Dec
+%type <declistAST> Def
 
 %right <op> ASSIGNOP
 %left <op> OR
@@ -48,7 +69,7 @@ extern int yyparse(yyFlexLexer* yyflex);
 %%
 
 // High-level Definitions
-Program:            ExtDefList                              { $$ = new ProgramAST($1); }
+Program:            ExtDefList                              { Program = new ProgramAST($1); }
     ; 
 ExtDefList:         ExtDef ExtDefList                       { $$ = $2; $$->push_back($1); }
     |               MainDef                                 { $$ = new ast_list();

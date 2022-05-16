@@ -479,6 +479,14 @@ llvm::Function *FunctionAST::codegen() {
   return nullptr;
 }
 
-llvm::Function *ProgramAST::codegen(){
+void *ProgramAST::codegen(){
+    // for C++ 14
+    TheModule = std::make_unique<llvm::Module>("Code Gen", TheContext);
     
+    for(int i=0;i<ElementList.size();i++){
+        ElementList[i]->codegen();
+    }
+
+    // print out TheModule
+    TheModule->print(llvm::errs(), nullptr);
 }
