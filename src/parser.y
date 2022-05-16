@@ -1,9 +1,8 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream>
 #include <string>
-#include "ast.h"
+#include "ast.hpp"
 
 // using namespace std;
 
@@ -17,8 +16,9 @@ extern int yyparse(yyFlexLexer* yyflex);
     int int_val;
     float float_val;
 
-    string* name;
+    char* name;
     char* op; 
+    char* Char
 
     ast_list* AST_list;
     ExprAST* exprAST;
@@ -31,8 +31,8 @@ extern int yyparse(yyFlexLexer* yyflex);
     DecListAST* declistAST;
 }
 
-%token COLON SEMICOLON COMMA LC RC FUNCSPEC
-%token DEF RETURN MAIN
+%token <Char> COLON SEMICOLON COMMA LC RC FUNCSPEC SEMI STRUCT IF WHILE TYPE
+%token <Char> DEF RETURN MAIN 
 %token <name> ID
 %token <int_val> INT
 %token <float_val> FLOAT
@@ -47,7 +47,7 @@ extern int yyparse(yyFlexLexer* yyflex);
 %type <exprAST> ExtDef ReturnStmt Exp Stmt
 %type <functionAST> MainDef
 %type <typeAST> Specifier
-%type <prototypeAST> FunDec
+%type <prototypeAST> FunDec MainFunDec
 %type <bodyAST> CompSt
 %type <variableexprAST> VarDec
 %type <decexprAST> ParamDec Dec
@@ -57,12 +57,12 @@ extern int yyparse(yyFlexLexer* yyflex);
 %left <op> OR
 %left <op> AND
 %left <op> RELOP
-%left <op> ADD, SUB
-%left <op> MUL, DIV
+%left <op> ADD SUB
+%left <op> MUL DIV
 %right <op> NOT
 %left <op> DOT
-%left <op> LB, RB
-%left <op> LP, RP
+%left <op> LB RB
+%left <op> LP RP
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 
@@ -77,7 +77,7 @@ ExtDefList:         ExtDef ExtDefList                       { $$ = $2; $$->push_
     |                                                       { $$ = new ast_list(); } 
     ; 
 ExtDef:             ExtDecList SEMI                         { $$ = new GlobalDecListAST($1); }
-    |               Specifier SEMI                          { //for struct }
+    |               Specifier SEMI                          {  }
     |               DEF FunDec COLON CompSt                 { $$ = new FunctionAST($2, $4); }
     |               error SEMI                              {  }
     ; 
@@ -103,7 +103,7 @@ Tag:                ID                                      {  }
 
 // Declarators
 VarDec:             ID                                      { $$ = new VariableExprAST(std::string($1)); }
-    |               VarDec LB INT RB                        { //for array }
+    |               VarDec LB INT RB                        {  }
     |               error RB                                {  }
     ; 
 FunDec:             ID LP VarList RP FUNCSPEC Specifier     { $$ = new PrototypeAST($6, std::string($1), $3); }
@@ -155,18 +155,18 @@ Exp:                Exp ASSIGNOP Exp                        { $$ = new AssignExp
     |               Exp AND Exp                             { $$ = new BinaryExprAST(std::string($2), $1, $3); }
     |               Exp OR Exp                              { $$ = new BinaryExprAST(std::string($2), $1, $3); }
     |               Exp RELOP Exp                           { $$ = new BinaryExprAST(std::string($2), $1, $3); }
-    |               Exp PLUS Exp                            { $$ = new BinaryExprAST(std::string($2), $1, $3); }
-    |               Exp MINUS Exp                           { $$ = new BinaryExprAST(std::string($2), $1, $3); }
-    |               Exp STAR Exp                            { $$ = new BinaryExprAST(std::string($2), $1, $3); }
+    |               Exp ADD Exp                            { $$ = new BinaryExprAST(std::string($2), $1, $3); }
+    |               Exp SUB Exp                           { $$ = new BinaryExprAST(std::string($2), $1, $3); }
+    |               Exp MUL Exp                            { $$ = new BinaryExprAST(std::string($2), $1, $3); }
     |               Exp DIV Exp                             { $$ = new BinaryExprAST(std::string($2), $1, $3); }
     |               LP Exp RP                               { $$ = $2; }
-    |               MINUS Exp                               { $$ = new BinaryExprAST(std::string($1), new IntExprAST(0), $2); }
+    |               SUB Exp                               { $$ = new BinaryExprAST(std::string($1), new IntExprAST(0), $2); }
     |               NOT Exp                                 { $$ = new BinaryExprAST(std::string($1), new VoidExprAST(), $2); }
-    |               ID LP Args RP                           { $$ = new CallExprAST($1, $3); }
+    |               ID LP Args RP                           { $$ = new CallExprAST(std::string($1), $3); }
     |               ID LP RP                                { $$ = new CallExprAST($1, new VoidExprAST()); }
-    |               Exp LB Exp RB                           { //for array }
-    |               Exp DOT ID                              { //for struct }
-    |               ID                                      { $$ = new VariableExprAST($1); }
+    |               Exp LB Exp RB                           {  }
+    |               Exp DOT ID                              {  }
+    |               ID                                      { $$ = new VariableExprAST(std::string($1)); }
     |               INT                                     { $$ = new IntExprAST($1); }
     |               FLOAT                                   { $$ = new FloatExprAST($1); }
     ; 

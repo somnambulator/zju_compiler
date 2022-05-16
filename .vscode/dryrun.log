@@ -1,3 +1,13 @@
-make --dry-run --always-make --keep-going --print-directory
-/bin/sh: 1: make: not found
+make --dry-run --keep-going --print-directory
+make: Entering directory '/home/yuanli/zju_compiler'
+yacc  src/parser.y 
+mv -f y.tab.c src/parser.c
+cc    -c -o src/parser.o src/parser.c
+g++ `/usr/bin/llvm-config-13 --cppflags` -std=c++14 -Wno-return-type -Wno-c++11-compat-deprecated-writable-strings -Wno-deprecated-register -Wno-switch  -fpermissive    -c -o main.o main.cpp
+rm src/parser.c
+make: Leaving directory '/home/yuanli/zju_compiler'
+ 
+make: *** No rule to make target 'tokenizer.o', needed by 'mypy'.
+make: *** No rule to make target 'ast.o', needed by 'mypy'.
+make: *** No rule to make target 'CodeGenerator.o', needed by 'mypy'.
 
