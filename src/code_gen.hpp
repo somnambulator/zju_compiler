@@ -1,5 +1,4 @@
-#ifndef _UTIL_H
-#define _UTIL_H
+#pragma once
 
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
@@ -16,9 +15,13 @@
 #include <vector>
 #include <memory>
 #include <map>
+#include <string>
 #include "./ast.hpp"
 
 //NOTE: every VariableExprAST that inserted into the symbol table get it's type changed into data type rather than type_ID
+
+std::unique_ptr<ExprAST> LogError(const std::string& Str);
+llvm::Value *LogErrorV(const std::string& Str);
 
 class SymbolTable {
     std::vector<std::map<std::string, llvm::AllocaInst *>*> NamedValues; //stack, for local variables
@@ -119,4 +122,3 @@ public:
     
 };
 
-#endif

@@ -1,5 +1,4 @@
-#ifndef _AST_H
-#define _AST_H
+#pragma once
 
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
@@ -155,7 +154,7 @@ class GlobalDecListAST : public ExprAST{
   ast_list VarList;
 
 public:
-  GlobalDecListAST(ast_list List) : VarList(List) {this->SetType(type_GlobalDec);}
+  GlobalDecListAST(ast_list List) : VarList(std::move(List)) {this->SetType(type_GlobalDec);}
 
   llvm::Value *codegen() override;
 };
@@ -165,7 +164,7 @@ class DecListAST : public ExprAST{
   ast_list VarList;
 
 public:
-  DecListAST(ast_list List) : VarList(List) {this->SetType(type_DecList);}
+  DecListAST(ast_list List) : VarList(std::move(List)) {this->SetType(type_DecList);}
 
   llvm::Value *codegen() override;
 };
@@ -313,8 +312,3 @@ public:
   
   void *codegen();
 };
-
-std::unique_ptr<ExprAST> LogError(const char *Str);
-llvm::Value *LogErrorV(const char *Str);
-
-#endif

@@ -1,5 +1,5 @@
-#include "./ast.hpp"
-#include "./util.hpp"
+#include "ast.hpp"
+#include "code_gen.hpp"
 
 static SymbolTable symbolTable;
 
@@ -77,7 +77,7 @@ llvm::Value *VariableExprAST::codegen() {
   llvm::Value *V = symbolTable._FindValue(Name);
   if (!V){
     llvm::GlobalVariable *GV = symbolTable._FindGlobalValue(Name);
-    if(!GV) return LogErrorV("Unknown variable name");
+    if(!GV) return LogErrorV(std::string("Unknown variable name"));
     else return Builder.CreateLoad(GV, Name.c_str());
   }
   return Builder.CreateLoad(V, Name.c_str());
@@ -95,7 +95,7 @@ llvm::Value *DecListAST::codegen(){
     }
     else{
       // ERROR !!
-      LogErrorV("illegal DecListAST!");
+      LogErrorV(std::string("illegal DecListAST!"));
     }
   }
 }
@@ -128,7 +128,7 @@ llvm::Value *DecExprAST::codegen(){
     break;
   default:
     // ERROR
-    LogErrorV("Unknown type!\n");
+    LogErrorV(std::string("Unknown type!\n"));
     break;
   }
 
@@ -162,7 +162,7 @@ llvm::Value *AssignExprAST::codegen(){
   llvm::Value* RHSVal = RHS->codegen();
 
   if(!RHSVal){
-    LogErrorV("Wrong RHS!");
+    LogErrorV(std::string("Wrong RHS!"));
     return nullptr;
   }
 
@@ -304,7 +304,7 @@ llvm::Value *BinaryExprAST::codegen() {
     return Builder.CreateNot(R, "nottmp");
   }
   else{
-    return LogErrorV("invalid binary operator");
+    return LogErrorV(std::string("invalid binary operator"));
   }
 }
 
@@ -346,7 +346,7 @@ llvm::Value* FuncPrint(ast_list Args){
       new_arg = Args[i]->codegen();
     }
     else{
-      LogErrorV("Wrong type for print");
+      LogErrorV(std::string("Wrong type for print"));
       return nullptr;
     }
 
@@ -366,17 +366,17 @@ llvm::Value* FuncPrint(ast_list Args){
 
 llvm::Value *CallExprAST::codegen() {
   if (Callee == "print"){
-    return FuncPrint(Args);
+    return FuncPrint(std::move(Args));
   }
   
   // Look up the name in the global module table.
   llvm::Function *CalleeF = getFunction(Callee);
   if (!CalleeF)
-    return LogErrorV("Unknown function referenced");
+    return LogErrorV(std::string("Unknown function referenced"));
 
   // If argument mismatch error.
   if (CalleeF->arg_size() != Args.size())
-    return LogErrorV("Incorrect # arguments passed");
+    return LogErrorV(std::string("Incorrect # arguments passed"));
 
   std::vector<llvm::Value *> ArgsV;
   for (unsigned i = 0, e = Args.size(); i != e; ++i) {
@@ -412,7 +412,7 @@ llvm::Function *PrototypeAST::codegen() {
   // Set names for all arguments.
   unsigned Idx = 0;
   for (auto &Arg : F->args())
-    Arg.setName(Args[Idx++]);
+    Arg.setName(static_cast<DecExprAST*>(Args[Idx++].get())->getName());
 
   symbolTable.addProtoType(Name, this);
 

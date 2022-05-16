@@ -4,14 +4,15 @@
 #include <math.h>
 #include <string>
 #include <iostream>
-#include "paser.hpp"
+#include "ast.hpp"
+#include "parser.y.hpp"
 using namespace std;
 
 int yycolumn = 1;
 %}
 
 %option noyywrap
-
+%option yylineno
 
 ws [ \t]
 digit [0-9]
@@ -59,7 +60,7 @@ RC "}"
 {STRUCT} { return STRUCT; }
 {RELOP} { return RELOP; }
 
-{DEF} { return def; }
+{DEF} { return DEF; }
 {RETURN} { return RETURN; }
 {MAIN} { return MAIN; }
 {FUNCSPEC} { return FUNCSPEC; }
@@ -84,7 +85,7 @@ RC "}"
 {RB} { return RB; }
 {LC} { return LC; }
 {RC} { return RC; }
-{INT} { yyval.int_val = atoi(yytext); return INT;}
-{FLOAT} { yyval.float_val = atof(yytext); return FLOAT;}
-{ID} { yyval.name = new string(yytext); return ID}
+{INT} { yylval.int_val = atoi(yytext); return INT;}
+{FLOAT} { yylval.float_val = atof(yytext); return FLOAT;}
+{ID} { return ID; }
 %%

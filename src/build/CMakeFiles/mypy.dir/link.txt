@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/mypy.dir/main.cpp.o CMakeFiles/mypy.dir/ast.cpp.o CMakeFiles/mypy.dir/code_gen.cpp.o CMakeFiles/mypy.dir/lex.l.cpp.o CMakeFiles/mypy.dir/parser.y.cpp.o  -o mypy  -lLLVM-13 
