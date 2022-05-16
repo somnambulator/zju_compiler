@@ -4,6 +4,7 @@
 #include <math.h>
 #include <string>
 #include <iostream>
+#include "paser.hpp"
 using namespace std;
 
 int yycolumn = 1;

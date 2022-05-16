@@ -1,5 +1,5 @@
-#include "./ast.h"
-#include "./util.h"
+#include "./ast.hpp"
+#include "./util.hpp"
 
 static SymbolTable symbolTable;
 
@@ -482,7 +482,7 @@ llvm::Function *FunctionAST::codegen() {
 void *ProgramAST::codegen(){
     // for C++ 14
     TheModule = std::make_unique<llvm::Module>("Code Gen", TheContext);
-    
+
     for(int i=0;i<ElementList.size();i++){
         ElementList[i]->codegen();
     }

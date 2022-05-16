@@ -16,7 +16,7 @@
 #include <vector>
 #include <memory>
 #include <map>
-#include "./ast.h"
+#include "./ast.hpp"
 
 //NOTE: every VariableExprAST that inserted into the symbol table get it's type changed into data type rather than type_ID
 
