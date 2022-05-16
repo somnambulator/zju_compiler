@@ -51,41 +51,43 @@ RC "}"
 
 %%
 
-{ws}+ { }
-\n|\r { }
-{IF} { return IF;}
-{ELSE} { return ELSE; }
-{WHILE} {  return WHILE; }
-{TYPE} { return TYPE; }
-{STRUCT} { return STRUCT; }
-{RELOP} { return RELOP; }
+{ws}+ { ; }
+\n|\r { ; }
+{IF} { yylval.Str = new std::string(yytext); return IF;}
+{ELSE} { yylval.Str = new std::string(yytext); return ELSE; }
+{WHILE} { yylval.Str = new std::string(yytext); return WHILE; }
+{TYPE} { yylval.Str = new std::string(yytext); return TYPE; }
+{STRUCT} { yylval.Str = new std::string(yytext); return STRUCT; }
+{RELOP} { yylval.Str = new std::string(yytext); return RELOP; }
 
-{DEF} { return DEF; }
-{RETURN} { return RETURN; }
-{MAIN} { return MAIN; }
-{FUNCSPEC} { return FUNCSPEC; }
+{DEF} { yylval.Str = new std::string(yytext); return DEF; }
+{RETURN} { yylval.Str = new std::string(yytext); return RETURN; }
+{MAIN} { yylval.Str = new std::string(yytext); return MAIN; }
+{FUNCSPEC} { yylval.Str = new std::string(yytext); return FUNCSPEC; }
 
-{ADD} { return ADD; }
-{SUB} { return SUB; }
-{MUL} { return MUL; }
-{DIV} { return DIV; }
-{AND} { return AND; }
-{OR} { return OR; }
-{NOT} { return NOT; }
+{ADD} { yylval.op = new std::string(yytext); return ADD; }
+{SUB} { yylval.op = new std::string(yytext); return SUB; }
+{MUL} { yylval.op = new std::string(yytext); return MUL; }
+{DIV} { yylval.op = new std::string(yytext); return DIV; }
+{AND} { yylval.op = new std::string(yytext); return AND; }
+{OR} { yylval.op = new std::string(yytext); return OR; }
+{NOT} { yylval.op = new std::string(yytext); return NOT; }
 
-{DOT} { return DOT; }
-{SEMI} { return SEMI; }
-{COMMA} { return COMMA; }
-{COLON} { return COLON; }
-{ASSIGNOP} { return ASSIGNOP; }
+{DOT} { yylval.op = new std::string(yytext); return DOT; }
+{SEMI} { yylval.op = new std::string(yytext); return SEMI; }
+{COMMA} { yylval.Str = new std::string(yytext); return COMMA; }
+{COLON} { yylval.Str = new std::string(yytext); return COLON; }
+{ASSIGNOP} { yylval.op = new std::string(yytext); return ASSIGNOP; }
 
-{LP} { return LP; }
-{RP} { return RP; }
-{LB} { return LB; }
-{RB} { return RB; }
-{LC} { return LC; }
-{RC} { return RC; }
+{LP} { yylval.op = new std::string(yytext); return LP; }
+{RP} { yylval.op = new std::string(yytext); return RP; }
+{LB} { yylval.op = new std::string(yytext); return LB; }
+{RB} { yylval.op = new std::string(yytext); return RB; }
+{LC} { yylval.Str = new std::string(yytext); return LC; }
+{RC} { yylval.Str = new std::string(yytext); return RC; }
 {INT} { yylval.int_val = atoi(yytext); return INT;}
 {FLOAT} { yylval.float_val = atof(yytext); return FLOAT;}
-{ID} { return ID; }
+{ID} { yylval.name = new std::string(yytext); return ID; }
+
+. { ; }
 %%

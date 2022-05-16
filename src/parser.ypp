@@ -24,9 +24,9 @@ ProgramAST* Program;
     int int_val;
     float float_val;
 
-    char* name;
-    char* op; 
-    char* Char;
+    std::string* name;
+    std::string* op; 
+    std::string* Str;
 
     ast_list* AST_list;
     ExprAST* exprAST;
@@ -39,8 +39,8 @@ ProgramAST* Program;
     DecListAST* declistAST;
 }
 
-%token <Char> COLON COMMA LC RC FUNCSPEC SEMI STRUCT IF WHILE TYPE
-%token <Char> DEF RETURN MAIN 
+%token <Str> COLON COMMA LC RC FUNCSPEC SEMI STRUCT IF WHILE TYPE ELSE
+%token <Str> DEF RETURN MAIN 
 %token <name> ID
 %token <int_val> INT
 %token <float_val> FLOAT
@@ -74,10 +74,12 @@ ProgramAST* Program;
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 
+%start Program
+
 %%
 
 // High-level Definitions
-Program:            ExtDefList                              { Program = new ProgramAST(std::move(*$1)); }
+Program:            ExtDefList                              { printf("in parser-Program\n"); Program = new ProgramAST(std::move(*$1)); }
     ; 
 ExtDefList:         ExtDef ExtDefList                       { $$ = $2; $$->push_back(std::unique_ptr<ExprAST>($1)); }
     |               MainDef                                 { $$ = new ast_list();
@@ -97,7 +99,7 @@ ExtDecList:         VarDec COLON Specifier                  { $$ = new ast_list(
     ; 
 
 // Specifiers
-Specifier:          TYPE                                    { $$ = new TypeAST(std::string($1)); }
+Specifier:          TYPE                                    { $$ = new TypeAST(*$1); }
     |               StructSpecifier                         {  }
     ; 
 StructSpecifier:    STRUCT OptTag LC DefList RC             {  }
@@ -110,14 +112,14 @@ Tag:                ID                                      {  }
     ; 
 
 // Declarators
-VarDec:             ID                                      { $$ = new VariableExprAST(std::string($1)); }
+VarDec:             ID                                      { $$ = new VariableExprAST(*$1); }
     |               VarDec LB INT RB                        {  }
     |               error RB                                {  }
     ; 
-FunDec:             ID LP VarList RP FUNCSPEC Specifier     { $$ = new PrototypeAST($6, std::string($1), std::move(*$3)); }
+FunDec:             ID LP VarList RP FUNCSPEC Specifier     { $$ = new PrototypeAST($6, *$1, std::move(*$3)); }
     |               ID LP RP FUNCSPEC Specifier             { ast_list* void_args; 
                                                               void_args = new ast_list(); 
-                                                              $$ = new PrototypeAST($5, std::string($1), std::move(*void_args)); }
+                                                              $$ = new PrototypeAST($5, *$1, std::move(*void_args)); }
     |               error RP                                {  }
     ; 
 MainFunDec:         MAIN LP RP FUNCSPEC Specifier           { ast_list* void_args; 
@@ -163,23 +165,23 @@ Dec:                VarDec COLON Specifier                  { $$ = new DecExprAS
     ; 
 //7.1.7 Expressions
 Exp:                Exp ASSIGNOP Exp                        { $$ = new AssignExprAST($1, $3); }
-    |               Exp AND Exp                             { $$ = new BinaryExprAST(std::string($2), $1, $3); }
-    |               Exp OR Exp                              { $$ = new BinaryExprAST(std::string($2), $1, $3); }
-    |               Exp RELOP Exp                           { $$ = new BinaryExprAST(std::string($2), $1, $3); }
-    |               Exp ADD Exp                            { $$ = new BinaryExprAST(std::string($2), $1, $3); }
-    |               Exp SUB Exp                           { $$ = new BinaryExprAST(std::string($2), $1, $3); }
-    |               Exp MUL Exp                            { $$ = new BinaryExprAST(std::string($2), $1, $3); }
-    |               Exp DIV Exp                             { $$ = new BinaryExprAST(std::string($2), $1, $3); }
+    |               Exp AND Exp                             { $$ = new BinaryExprAST(*$2, $1, $3); }
+    |               Exp OR Exp                              { $$ = new BinaryExprAST(*$2, $1, $3); }
+    |               Exp RELOP Exp                           { $$ = new BinaryExprAST(*$2, $1, $3); }
+    |               Exp ADD Exp                            { $$ = new BinaryExprAST(*$2, $1, $3); }
+    |               Exp SUB Exp                           { $$ = new BinaryExprAST(*$2, $1, $3); }
+    |               Exp MUL Exp                            { $$ = new BinaryExprAST(*$2, $1, $3); }
+    |               Exp DIV Exp                             { $$ = new BinaryExprAST(*$2, $1, $3); }
     |               LP Exp RP                               { $$ = $2; }
-    |               SUB Exp                               { $$ = new BinaryExprAST(std::string($1), new IntExprAST(0), $2); }
-    |               NOT Exp                                 { $$ = new BinaryExprAST(std::string($1), new VoidExprAST(), $2); }
-    |               ID LP Args RP                           { $$ = new CallExprAST(std::string($1), std::move(*$3)); }
+    |               SUB Exp                               { $$ = new BinaryExprAST(*$1, new IntExprAST(0), $2); }
+    |               NOT Exp                                 { $$ = new BinaryExprAST(*$1, new VoidExprAST(), $2); }
+    |               ID LP Args RP                           { $$ = new CallExprAST(*$1, std::move(*$3)); }
     |               ID LP RP                                { ast_list* void_args; 
                                                               void_args = new ast_list();  
-                                                              $$ = new CallExprAST($1, std::move(*void_args)); }
+                                                              $$ = new CallExprAST(*$1, std::move(*void_args)); }
     |               Exp LB Exp RB                           {  }
     |               Exp DOT ID                              {  }
-    |               ID                                      { $$ = new VariableExprAST(std::string($1)); }
+    |               ID                                      { $$ = new VariableExprAST(*$1); }
     |               INT                                     { $$ = new IntExprAST($1); }
     |               FLOAT                                   { $$ = new FloatExprAST($1); }
     ; 

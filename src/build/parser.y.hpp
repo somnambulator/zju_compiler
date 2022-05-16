@@ -59,28 +59,28 @@ extern int yydebug;
     IF = 265,
     WHILE = 266,
     TYPE = 267,
-    DEF = 268,
-    RETURN = 269,
-    MAIN = 270,
-    ID = 271,
-    INT = 272,
-    FLOAT = 273,
-    ASSIGNOP = 274,
-    OR = 275,
-    AND = 276,
-    RELOP = 277,
-    ADD = 278,
-    SUB = 279,
-    MUL = 280,
-    DIV = 281,
-    NOT = 282,
-    DOT = 283,
-    LB = 284,
-    RB = 285,
-    LP = 286,
-    RP = 287,
-    LOWER_THAN_ELSE = 288,
-    ELSE = 289
+    ELSE = 268,
+    DEF = 269,
+    RETURN = 270,
+    MAIN = 271,
+    ID = 272,
+    INT = 273,
+    FLOAT = 274,
+    ASSIGNOP = 275,
+    OR = 276,
+    AND = 277,
+    RELOP = 278,
+    ADD = 279,
+    SUB = 280,
+    MUL = 281,
+    DIV = 282,
+    NOT = 283,
+    DOT = 284,
+    LB = 285,
+    RB = 286,
+    LP = 287,
+    RP = 288,
+    LOWER_THAN_ELSE = 289
   };
 #endif
 
@@ -93,9 +93,9 @@ union YYSTYPE
     int int_val;
     float float_val;
 
-    char* name;
-    char* op; 
-    char* Char;
+    std::string* name;
+    std::string* op; 
+    std::string* Str;
 
     ast_list* AST_list;
     ExprAST* exprAST;
