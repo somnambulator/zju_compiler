@@ -366,11 +366,9 @@ llvm::Value* FuncPrint(ast_list Args){
 
 llvm::Value *CallExprAST::codegen() {
   if (Callee == "print"){
-    
+    return FuncPrint(Args);
   }
-  else if(Callee == "read"){
-
-  }
+  
   // Look up the name in the global module table.
   llvm::Function *CalleeF = getFunction(Callee);
   if (!CalleeF)

@@ -1,5 +1,5 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
-make: *** No rule to make target 'src/parser.o', needed by 'mypy'.  Stop.
+make: *** No rule to make target 'all'.  Stop.
 
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
@@ -8,7 +8,7 @@ make: *** No rule to make target 'src/parser.o', needed by 'mypy'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon May 16 15:04:13 2022
+# Make data base, printed on Mon May 16 20:43:28 2022
 
 # Variables
 
@@ -36,20 +36,14 @@ SHELL = /bin/sh
 VSCODE_NLS_CONFIG = {"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"42e84e0914b17800d483f69e299e1b00.zh-cn","_translationsConfigFile":"/home/yuanli/.vscode-server/data/clp/42e84e0914b17800d483f69e299e1b00.zh-cn/tcf.json","_cacheRoot":"/home/yuanli/.vscode-server/data/clp/42e84e0914b17800d483f69e299e1b00.zh-cn","_resolvedLanguagePackCoreLocation":"/home/yuanli/.vscode-server/data/clp/42e84e0914b17800d483f69e299e1b00.zh-cn/da15b6fd3ef856477bf6f4fb29ba1b7af717770d","_corruptedFile":"/home/yuanli/.vscode-server/data/clp/42e84e0914b17800d483f69e299e1b00.zh-cn/corrupted.info","_languagePackSupport":true}
 # environment
 _ = /mnt/c/Users/yuan_/AppData/Local/Programs/Microsoft VS Code/bin/code
-# makefile (from 'Makefile', line 5)
-NO_WARNING = -Wno-return-type -Wno-c++11-compat-deprecated-writable-strings -Wno-deprecated-register -Wno-switch 
-# makefile (from 'Makefile', line 1)
-MAKEFILE_LIST :=  Makefile
+# makefile
+MAKEFILE_LIST := 
 # 'override' directive
 GNUMAKEFLAGS := 
-# makefile (from 'Makefile', line 10)
-CXXFLAGS = `$(LLVM_CONFIG) --cppflags` -std=c++14 $(NO_WARNING) -fpermissive 
 # environment
 XDG_DATA_DIRS = /usr/local/share:/usr/share:/var/lib/snapd/desktop
 # environment
 VSCODE_VERBOSE_LOGGING = true
-# makefile (from 'Makefile', line 14)
-OBJS = parser.o tokenizer.o ast.o  main.o CodeGenerator.o
 # environment
 LESSOPEN = | /usr/bin/lesspipe %s
 # environment
@@ -61,9 +55,7 @@ PATH = /home/yuanli/.vscode-server/bin/da15b6fd3ef856477bf6f4fb29ba1b7af717770d/
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-2f9ed6dc-7185-48ed-bede-63ede764871b.sock
-# makefile (from 'Makefile', line 11)
-LDFLAGS = `$(LLVM_CONFIG) --ldflags`
+VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-41831c9b-ed34-4cd4-ad14-3f01f6cbb3ac.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -89,7 +81,7 @@ LESSCLOSE = /usr/bin/lesspipe %s %s
 # environment
 LOGNAME = yuanli
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # automatic
@@ -102,16 +94,14 @@ MAKE = $(MAKE_COMMAND)
 MAKECMDGOALS := all
 # environment
 SHLVL = 1
-# makefile (from 'Makefile', line 3)
-LLVM_CONFIG = /usr/bin/llvm-config-13
 # default
 MAKE_VERSION := 4.2.1
 # environment
 USER = yuanli
 # makefile
-.DEFAULT_GOAL := all
-# makefile (from 'Makefile', line 1)
-NAME = mypy
+.DEFAULT_GOAL := 
+# environment
+NAME = Code
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
 # environment
@@ -144,8 +134,6 @@ MAKEFILES :=
 LC_ALL = C
 # environment
 HOSTTYPE = x86_64
-# makefile (from 'Makefile', line 12)
-LIBS = `$(LLVM_CONFIG) --libs --system-libs`
 # automatic
 ^F = $(notdir $^)
 # default
@@ -165,7 +153,7 @@ WSL_DISTRO_NAME = Ubuntu
 # environment
 MOTD_SHOWN = update-motd
 # variable set hash-table stats:
-# Load=76/1024=7%, Rehash=0, Collisions=8/105=8%
+# Load=70/1024=7%, Rehash=0, Collisions=4/92=4%
 
 # Pattern-specific Variable Values
 
@@ -173,58 +161,36 @@ MOTD_SHOWN = update-motd
 
 # Directories
 
-# . (device 2064, inode 40069): 9 files, no impossibilities.
-# src (device 2064, inode 42474): 8 files, 1 impossibilities.
+# . (device 2064, inode 40069): 8 files, no impossibilities.
 
-# 17 files, 1 impossibilities in 2 directories.
+# 8 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
-%.o: %.cpp src/%.cpp src/%.hpp
-#  recipe to execute (from 'Makefile', line 26):
-	g++ -c $(CXXFLAGS) -g -o $@ $< 
-
-# 1 implicit rules, 0 (0.0%) terminal.
+# No implicit rules.
 
 # Files
 
 # Not a target:
-src/lex.l:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-all: mypy
+all:
 #  Command line target.
 #  Implicit rule search has been done.
 #  File does not exist.
 #  File has not been updated.
 
-.PHONY: clean
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-05-16 15:01:49.638862537
+#  File does not exist.
 #  File has been updated.
-#  Successfully updated.
+#  Failed to be updated.
 
-parser.hpp: src/parser.y
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 19):
-	bison -d -o ./src/parser.hpp ./src/parser.y
-
-lex.cpp: src/lex.l
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 22):
-	flex -o ./src/lex.cpp ./src/lex.l
+# Not a target:
+makefile:
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has been updated.
+#  Failed to be updated.
 
 # Not a target:
 .DEFAULT:
@@ -233,74 +199,26 @@ lex.cpp: src/lex.l
 #  File has not been updated.
 
 # Not a target:
-tokenizer.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-# Not a target:
-ast.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-clean:
-#  Phony target (prerequisite of .PHONY).
-#  Implicit rule search has not been done.
-#  File does not exist.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 33):
-	-rm -f *.o ./src/*.o
-	-rm -f ./src/parser.hpp ./src/parser.hpp ./src/lex.cpp ./mypy
-	-rm -f *.s
-	-rm -f *.ll
-
-mypy: src/parser.o tokenizer.o ast.o main.o CodeGenerator.o
-#  Implicit rule search has not been done.
-#  File does not exist.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 29):
-	g++ -o $@ ./src/$(OBJS) $(LIBS) $(LDFLAGS)
-
-# Not a target:
-CodeGenerator.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-# Not a target:
-main.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-# Not a target:
-src/parser.o:
- 
+GNUmakefile:
 #  Implicit rule search has been done.
 #  File does not exist.
-#  File has not been updated.
-
-# Not a target:
-src/parser.y:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  File has been updated.
+#  Failed to be updated.
 
 # files hash-table stats:
-# Load=16/1024=2%, Rehash=0, Collisions=1/40=2%
+# Load=6/1024=1%, Rehash=0, Collisions=0/15=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 38 / storage = 339 B / avg = 8 B
-# current buf: size = 8162 B / used = 339 B / count = 38 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 16 / storage = 138 B / avg = 8 B
+# current buf: size = 8162 B / used = 138 B / count = 16 / avg = 8 B
 
-# strcache performance: lookups = 55 / hit rate = 30%
+# strcache performance: lookups = 19 / hit rate = 15%
 # hash-table stats:
-# Load=38/8192=0%, Rehash=0, Collisions=2/55=4%
-# Finished Make data base on Mon May 16 15:04:13 2022
+# Load=16/8192=0%, Rehash=0, Collisions=1/19=5%
+# Finished Make data base on Mon May 16 20:43:28 2022
 
  

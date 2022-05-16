@@ -12,21 +12,22 @@ int yycolumn = 1;
 
 %option noyywrap
 
+
 ws [ \t]
 digit [0-9]
 letter [_a-zA-Z]
 INT [+-]?(0|[1-9]+{digit}*)
 FLOAT [+-]?({digit}*\.?{digit}+|{digit}+\.)
 ID {letter}[_0-9a-zA-Z]*
-RELOP 	>|<|>=|<=|==|!=
-IF if
-ELSE else
-WHILE while
-TYPE int|float
-STRUCT struct
-DEF def
-MAIN main
-RETURN return
+RELOP 	">"|"<"|">="|"<="|"=="|"!="
+IF "if"
+ELSE "else"
+WHILE "while"
+TYPE "int"|"float"
+STRUCT "struct"
+DEF "def"
+MAIN "main"
+RETURN "return"
 ADD "+"
 SUB "-"
 MUL "*"
@@ -61,6 +62,7 @@ RC "}"
 {DEF} { return def; }
 {RETURN} { return RETURN; }
 {MAIN} { return MAIN; }
+{FUNCSPEC} { return FUNCSPEC; }
 
 {ADD} { return ADD; }
 {SUB} { return SUB; }

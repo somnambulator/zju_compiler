@@ -47,11 +47,6 @@
 #define type_GlobalDec 110
 #define type_Expr 111
 
-typedef std::vector<std::unique_ptr<ExprAST>> ast_list;
-// typedef std::vector<std::unique_ptr<DecExprAST>> dec_list;
-// typedef std::vector<std::unique_ptr<PrototypeAST>> proto_list;
-// typedef std::vector<std::unique_ptr<FunctionAST>> func_list;
-
 static llvm::LLVMContext TheContext;
 static llvm::IRBuilder<> Builder(TheContext);
 static std::unique_ptr<llvm::Module> TheModule;
@@ -96,6 +91,11 @@ public:
 
   virtual llvm::Value *codegen() = 0;
 };
+
+typedef std::vector<std::unique_ptr<ExprAST>> ast_list;
+// typedef std::vector<std::unique_ptr<DecExprAST>> dec_list;
+// typedef std::vector<std::unique_ptr<PrototypeAST>> proto_list;
+// typedef std::vector<std::unique_ptr<FunctionAST>> func_list;
 
 /// TypeAST - Expression class for different types.
 class TypeAST : public ExprAST {
@@ -174,11 +174,21 @@ public:
 class DecExprAST : public ExprAST{
   std::unique_ptr<VariableExprAST> Var;
   std::unique_ptr<TypeAST> Type;
+  std::unique_ptr<ExprAST> Val;
   std::string name;
 
 public:
-  DecExprAST(std::unique_ptr<VariableExprAST> Var, 
-             std::unique_ptr<TypeAST> Type) : Var(std::move(Var)), Type(std::move(Type)) {
+  DecExprAST(VariableExprAST* Var, 
+             TypeAST* Type) : Var(std::move(Var)), Type(std::move(Type)) {
+               Var->SetType(Type->getType());
+               this->SetType(type_Dec);
+               name = Var->getName();
+             }
+  
+  DecExprAST(VariableExprAST* Var, 
+             TypeAST* Type,
+             ExprAST* Val) 
+             : Var(std::move(Var)), Type(std::move(Type)), Val(Val) {
                Var->SetType(Type->getType());
                this->SetType(type_Dec);
                name = Var->getName();
@@ -207,8 +217,8 @@ class AssignExprAST : public ExprAST {
   std::unique_ptr<ExprAST> LHS, RHS;
 
 public:
-  AssignExprAST(std::unique_ptr<ExprAST> LHS,
-                std::unique_ptr<ExprAST> RHS)
+  AssignExprAST(ExprAST* LHS,
+                ExprAST* RHS)
       : LHS(std::move(LHS)), RHS(std::move(RHS)) {this->SetType(type_assignExpr);}
 
   llvm::Value *codegen() override;
@@ -220,8 +230,9 @@ class BinaryExprAST : public ExprAST {
   std::unique_ptr<ExprAST> LHS, RHS;
 
 public:
-  BinaryExprAST(std::string Op, std::unique_ptr<ExprAST> LHS,
-                std::unique_ptr<ExprAST> RHS)
+  BinaryExprAST(std::string Op, 
+                ExprAST* LHS,
+                ExprAST* RHS)
       : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {this->SetType(type_binaryExpr);}
 
   llvm::Value *codegen() override;
@@ -251,7 +262,7 @@ class PrototypeAST : public ExprAST{
   ast_list Args;
 
 public:
-  PrototypeAST(std::unique_ptr<TypeAST> retType, const std::string &Name, ast_list Args)
+  PrototypeAST(TypeAST* retType, const std::string &Name, ast_list Args)
       : retType(std::move(retType)), Name(Name), Args(std::move(Args)) {this->SetType(type_FuncProto);}
 
   int getRetType() {return retType->getType();}
@@ -268,8 +279,9 @@ class BodyAST : public ExprAST {
 
 public:
   BodyAST(ast_list DefList,
-              ast_list StmtList)
-      : DefList(std::move(DefList)), StmtList(std::move(StmtList)) {this->SetType(type_FuncBody);}
+          ast_list StmtList,
+          ExprAST* ReturnExpr)
+      : DefList(std::move(DefList)), StmtList(std::move(StmtList)), ReturnExpr(ReturnExpr) {this->SetType(type_FuncBody);}
   
   llvm::Value *codegen();
 };
@@ -277,12 +289,12 @@ public:
 /// FunctionAST - This class represents a function definition itself.
 class FunctionAST : public ExprAST {
   std::unique_ptr<PrototypeAST> Proto;
-  std::unique_ptr<ExprAST> Body;
-  // std::unique_ptr<ExprAST> ReturnExpr;
+  std::unique_ptr<BodyAST> Body;
+  std::unique_ptr<ExprAST> ReturnExpr;
 
 public:
-  FunctionAST(std::unique_ptr<PrototypeAST> Proto,
-              std::unique_ptr<ExprAST> Body)
+  FunctionAST(PrototypeAST* Proto,
+              BodyAST* Body)
       : Proto(std::move(Proto)), Body(std::move(Body)) {this->SetType(type_Func);}
   
   void SetReturnExpr(std::unique_ptr<ExprAST> ReturnExpr){
