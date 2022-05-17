@@ -27,23 +27,23 @@ class SymbolTable {
     std::vector<std::map<std::string, llvm::AllocaInst *>*> NamedValues; //stack, for local variables
     std::map<std::string, llvm::GlobalVariable *> GlobalNamedValues;
 
-    std::vector<std::map<std::string, VariableExprAST *>*> IDTable; //stack, for local identifiers
-    std::map<std::string, VariableExprAST *> GlobalIDTable;
+    std::vector<std::map<std::string, int>*> IDTable; //stack, for local identifiers
+    std::map<std::string, int> GlobalIDTable;
 
     std::map<std::string, PrototypeAST *> PrototypeTable; 
 
 public:
 
     int getType(std::string name){
-        return FindID(name)->getType();
+        return FindID(name);
     }
 
     void addGlobalVal(std::string name, llvm::GlobalVariable * value){
         GlobalNamedValues[name] = value;
     }
 
-    void addGlobalID(std::string name, VariableExprAST* Expr){
-        GlobalIDTable[name] = Expr;
+    void addGlobalID(std::string name, int Exprtype){
+        GlobalIDTable[name] = Exprtype;
     }
 
     void addLocalVal(std::string name, llvm::AllocaInst * value){
@@ -53,11 +53,11 @@ public:
         (*NamedValues.back())[name] = value;
     }
 
-    void addLocalID(std::string name, VariableExprAST* Expr){
+    void addLocalID(std::string name, int Exprtype){
         if (IDTable.size()<0){
             pushIDTable();
         }
-        (*IDTable.back())[name] = Expr;
+        (*IDTable.back())[name] = Exprtype;
     }
 
     void pushNamedValue(){
@@ -65,7 +65,7 @@ public:
     }
 
     void pushIDTable(){
-        IDTable.push_back(new std::map<std::string, VariableExprAST *>());
+        IDTable.push_back(new std::map<std::string, int>());
     }
 
     void popNamedValue(){
@@ -110,14 +110,14 @@ public:
         return nullptr;
     }
 
-    VariableExprAST* FindID(std::string name){
+    int FindID(std::string name){
         if(IDTable.back()->find(name) != IDTable.back()->end()){
             return (*IDTable.back())[name];
         }
         if (GlobalIDTable.find(name) != GlobalIDTable.end()){
             return GlobalIDTable[name];
         }
-        return nullptr;
+        return -1;
     }
     
 };

@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon May 16 20:43:28 2022
+# Make data base, printed on Tue May 17 09:59:13 2022
 
 # Variables
 
@@ -55,7 +55,7 @@ PATH = /home/yuanli/.vscode-server/bin/da15b6fd3ef856477bf6f4fb29ba1b7af717770d/
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-41831c9b-ed34-4cd4-ad14-3f01f6cbb3ac.sock
+VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-55e54199-26a2-4863-9f09-e7d148068a6a.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -71,7 +71,7 @@ PWD = /home/yuanli/zju_compiler
 # environment
 WSL_INTEROP = /run/WSL/8_interop
 # environment
-WT_SESSION = cc1155a3-4e83-4b51-ac3f-567e548ee4d2
+WT_SESSION = 50389be4-a1e6-4242-a8b3-270e1d4051f2
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
@@ -219,6 +219,6 @@ GNUmakefile:
 # strcache performance: lookups = 19 / hit rate = 15%
 # hash-table stats:
 # Load=16/8192=0%, Rehash=0, Collisions=1/19=5%
-# Finished Make data base on Mon May 16 20:43:28 2022
+# Finished Make data base on Tue May 17 09:59:13 2022
 
  

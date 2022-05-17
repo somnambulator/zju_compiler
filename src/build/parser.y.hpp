@@ -63,24 +63,26 @@ extern int yydebug;
     DEF = 269,
     RETURN = 270,
     MAIN = 271,
-    ID = 272,
-    INT = 273,
-    FLOAT = 274,
-    ASSIGNOP = 275,
-    OR = 276,
-    AND = 277,
-    RELOP = 278,
-    ADD = 279,
-    SUB = 280,
-    MUL = 281,
-    DIV = 282,
-    NOT = 283,
-    DOT = 284,
-    LB = 285,
-    RB = 286,
-    LP = 287,
-    RP = 288,
-    LOWER_THAN_ELSE = 289
+    VAR = 272,
+    STMT = 273,
+    ID = 274,
+    INT = 275,
+    FLOAT = 276,
+    ASSIGNOP = 277,
+    OR = 278,
+    AND = 279,
+    RELOP = 280,
+    ADD = 281,
+    SUB = 282,
+    MUL = 283,
+    DIV = 284,
+    NOT = 285,
+    DOT = 286,
+    LB = 287,
+    RB = 288,
+    LP = 289,
+    RP = 290,
+    LOWER_THAN_ELSE = 291
   };
 #endif
 
@@ -88,7 +90,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 23 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 28 "/home/yuanli/zju_compiler/src/parser.ypp"
 
     int int_val;
     float float_val;
@@ -107,7 +109,7 @@ union YYSTYPE
     DecExprAST* decexprAST;
     DecListAST* declistAST;
 
-#line 111 "parser.y.hpp"
+#line 113 "parser.y.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -115,9 +117,23 @@ typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
+/* Location type.  */
+#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
+{
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+};
+# define YYLTYPE_IS_DECLARED 1
+# define YYLTYPE_IS_TRIVIAL 1
+#endif
+
 
 extern YYSTYPE yylval;
-
+extern YYLTYPE yylloc;
 int yyparse (void);
 
 #endif /* !YY_YY_PARSER_Y_HPP_INCLUDED  */

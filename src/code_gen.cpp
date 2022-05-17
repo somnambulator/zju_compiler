@@ -4,7 +4,7 @@
 static SymbolTable symbolTable;
 
 std::unique_ptr<ExprAST> LogError(const std::string& Str) {
-  fprintf(stderr, "Error: %s\n", Str);
+  std::cerr<<"[Code Gen]ERROR:"<<Str<<std::endl;
   return nullptr;
 }
 
@@ -54,6 +54,13 @@ static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction,
   return TmpB.CreateAlloca(typeGen(dType), nullptr, VarName);
 }
 
+static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction,
+                                          const std::string &VarName, llvm::Type* dType) {
+  llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
+                   TheFunction->getEntryBlock().begin());
+  return TmpB.CreateAlloca(dType, nullptr, VarName);
+}
+
 llvm::Value *TypeAST::codegen() {
     //TODO: COMPLETE TYPEAST
     //nothing to do
@@ -77,7 +84,10 @@ llvm::Value *VariableExprAST::codegen() {
   llvm::Value *V = symbolTable._FindValue(Name);
   if (!V){
     llvm::GlobalVariable *GV = symbolTable._FindGlobalValue(Name);
-    if(!GV) return LogErrorV(std::string("Unknown variable name"));
+    if(!GV) {
+      std::string err = "Unknown variable name: "+Name;
+      return LogErrorV(err);
+    }
     else return Builder.CreateLoad(GV, Name.c_str());
   }
   return Builder.CreateLoad(V, Name.c_str());
@@ -88,7 +98,7 @@ llvm::Value *GlobalDecListAST::codegen() {
 }
 
 llvm::Value *DecListAST::codegen(){
-  for (int i = 0;i<VarList.size();i++){
+  for (int i = VarList.size()-1;i>=0;i--){
     int type = VarList[i]->getType();
     if (type == type_Dec || type == type_assignExpr){ 
       VarList[i]->codegen();
@@ -107,7 +117,7 @@ llvm::Value *DecExprAST::codegen(){
 
   //First check redefinition
   if (! symbolTable._FindValue(VarName)){
-    symbolTable.addLocalID(VarName, Var.get());
+    symbolTable.addLocalID(VarName, getDType());
   }
   else{
     std::string err = "Variable redefinition: " + VarName;
@@ -167,7 +177,8 @@ llvm::Value *AssignExprAST::codegen(){
   }
 
   llvm::Value* LHSAddr = symbolTable.FindValue(VarName);
-
+  // get the type of expression recursicely
+  RType = RHS->getType();
   if (RType<LType && LType <= type_float) {
     if (RType == type_bool) RHSVal = Builder.CreateUIToFP(RHSVal, typeGen(LType));
     else RHSVal = Builder.CreateSIToFP(RHSVal, typeGen(LType));
@@ -176,7 +187,23 @@ llvm::Value *AssignExprAST::codegen(){
     // do nothing
   }
   else{
-    std::string err = "Wrong assignment for "+VarName+": type of RHS doesn't match!";
+    std::string rhs_type;
+    switch (RType)
+    {
+    case type_bool:
+      rhs_type="bool";
+      break;
+    case type_int:
+      rhs_type="int";
+      break;
+    case type_float:
+      rhs_type="float";
+      break;
+    default:
+      rhs_type="unknown type";
+      break;
+    }
+    std::string err = "Wrong assignment for "+VarName+": type of RHS doesn't match! RHS type:"+rhs_type+"!";
     LogErrorV(err);
   }
 
@@ -194,13 +221,13 @@ llvm::Value *BinaryExprAST::codegen() {
   int LType = LHS->getType();
   if(LHS->getType()==type_ID){
     std::string name = static_cast<VariableExprAST*>(LHS.get())->getName();
-    LType = symbolTable.FindID(name)->getType();
+    LType = symbolTable.FindID(name);
   }
 
   int RType = RHS->getType();
   if(RHS->getType()==type_ID){
     std::string name = static_cast<VariableExprAST*>(RHS.get())->getName();
-    RType = symbolTable.FindID(name)->getType();
+    RType = symbolTable.FindID(name);
   }
 
   int ThisType;
@@ -420,10 +447,10 @@ llvm::Function *PrototypeAST::codegen() {
 }
 
 llvm::Value *BodyAST::codegen() {
-  for (int i=0;i<DefList.size();i++){
+  for (int i=DefList.size()-1;i>=0;i--){
     DefList[i]->codegen();
   }
-  for (int i=0;i<StmtList.size();i++){
+  for (int i=StmtList.size()-1;i>=0;i--){
     // tell the type of stmt
     StmtList[i]->codegen();
   }
@@ -453,6 +480,19 @@ llvm::Function *FunctionAST::codegen() {
   symbolTable.pushIDTable();
   symbolTable.pushNamedValue();
 
+  int i=0;
+  for (auto &Arg : TheFunction->args()) {
+    // Create an alloca for this variable.
+    llvm::AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName().str(), Arg.getType());
+
+    // Store the initial value into the alloca.
+    Builder.CreateStore(&Arg, Alloca);
+
+    // Add arguments to variable symbol table.
+    symbolTable.addLocalVal(Arg.getName().str(), Alloca);
+    symbolTable.addLocalID(Arg.getName().str(), Proto->getArgType(i++));
+  }
+
   if (llvm::Value *RetVal = Body->codegen()) {
     // Finish off the function.
     Builder.CreateRet(RetVal);
@@ -478,11 +518,12 @@ llvm::Function *FunctionAST::codegen() {
 }
 
 void *ProgramAST::codegen(){
+    printf("In code_gen.cpp\n");
     // for C++ 14
     TheModule = std::make_unique<llvm::Module>("Code Gen", TheContext);
 
-    for(int i=0;i<ElementList.size();i++){
-        ElementList[i]->codegen();
+    for(int i=ElementList.size()-1;i>=0;i--){
+      ElementList[i]->codegen();
     }
 
     // print out TheModule

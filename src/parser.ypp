@@ -1,15 +1,20 @@
+%locations
+%define parse.error verbose
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 #include "ast.hpp"
-
 // using namespace std;
 
 extern int yylex(void);
 extern int yyparse(void);
 extern void yyrestart(FILE*);
-extern void yyerror(char*);
+
+void yyerror(const char *str);
+
+extern char* yytext;
 extern int yylineno;
 extern int errorLexFlag;
 extern int errorSyntaxFlag;
@@ -40,7 +45,7 @@ ProgramAST* Program;
 }
 
 %token <Str> COLON COMMA LC RC FUNCSPEC SEMI STRUCT IF WHILE TYPE ELSE
-%token <Str> DEF RETURN MAIN 
+%token <Str> DEF RETURN MAIN VAR STMT
 %token <name> ID
 %token <int_val> INT
 %token <float_val> FLOAT
@@ -87,12 +92,12 @@ ExtDefList:         ExtDef ExtDefList                       { $$ = $2; $$->push_
     |                                                       { $$ = new ast_list(); } 
     ; 
 ExtDef:             ExtDecList SEMI                         { $$ = new GlobalDecListAST(std::move(*$1)); }
-    |               Specifier SEMI                          {  }
+    /* |               Specifier SEMI                          {  } */
     |               DEF FunDec COLON CompSt                 { $$ = new FunctionAST($2, $4); }
-    |               error SEMI                              {  }
+    |               error SEMI                              { printf("[Parser]Error in ExtDef\n"); }
     ; 
 MainDef:            DEF MainFunDec COLON CompSt             { $$ = new FunctionAST($2, $4); }
-    |               error SEMI                              {  }
+    |               error SEMI                              { printf("[Parser]Error in MainDef\n"); }
     ;
 ExtDecList:         VarDec COLON Specifier                  { $$ = new ast_list(); $$->push_back(std::unique_ptr<ExprAST>(new DecExprAST($1, $3))); }
     |               VarDec COLON Specifier COMMA ExtDecList { $$ = $5; $$->push_back(std::unique_ptr<ExprAST>(new DecExprAST($1, $3))); }
@@ -100,32 +105,32 @@ ExtDecList:         VarDec COLON Specifier                  { $$ = new ast_list(
 
 // Specifiers
 Specifier:          TYPE                                    { $$ = new TypeAST(*$1); }
-    |               StructSpecifier                         {  }
+    /* |               StructSpecifier                         {  } */
     ; 
-StructSpecifier:    STRUCT OptTag LC DefList RC             {  }
+/* StructSpecifier:    STRUCT OptTag LC DefList RC             {  }
     |               STRUCT Tag                              {  }
     ; 
 OptTag:             ID                                      {  }
     |                                                       {  }
     ; 
-Tag:                ID                                      {  }
+Tag:                ID                                      {  } */
     ; 
 
 // Declarators
 VarDec:             ID                                      { $$ = new VariableExprAST(*$1); }
-    |               VarDec LB INT RB                        {  }
-    |               error RB                                {  }
+    /* |               VarDec LB INT RB                        {  } */
+    |               error RB                                { printf("[Parser]Error in VerDec\n"); }
     ; 
 FunDec:             ID LP VarList RP FUNCSPEC Specifier     { $$ = new PrototypeAST($6, *$1, std::move(*$3)); }
     |               ID LP RP FUNCSPEC Specifier             { ast_list* void_args; 
                                                               void_args = new ast_list(); 
                                                               $$ = new PrototypeAST($5, *$1, std::move(*void_args)); }
-    |               error RP                                {  }
+    |               error RP                                { printf("[Parser]Error in FunDec\n"); }
     ; 
 MainFunDec:         MAIN LP RP FUNCSPEC Specifier           { ast_list* void_args; 
                                                               void_args = new ast_list(); 
                                                               $$ = new PrototypeAST($5, std::string("main"), std::move(*void_args)); }
-    |               error RP                                {  }
+    |               error RP                                { printf("[Parser]Error in MainFunDec\n"); }
     ; 
 VarList:            ParamDec COMMA VarList                  { $$ = $3; $$->push_back(std::unique_ptr<ExprAST>($1)); }
     |               ParamDec                                { $$ = new ast_list(); $$->push_back(std::unique_ptr<ExprAST>($1)); }
@@ -133,9 +138,9 @@ VarList:            ParamDec COMMA VarList                  { $$ = $3; $$->push_
 ParamDec:           VarDec COLON Specifier                  { $$ = new DecExprAST($1, $3); }
     ; 
 // Statements
-CompSt:             LC DefList StmtList RC                  { $$ = new BodyAST(std::move(*$2), std::move(*$3), new VoidExprAST()); }
-    |               LC DefList StmtList ReturnStmt RC       { $$ = new BodyAST(std::move(*$2), std::move(*$3), $4); }
-    |               error RC                                {  }
+CompSt:             LC VAR DefList STMT StmtList RC         { $$ = new BodyAST(std::move(*$3), std::move(*$5), new VoidExprAST()); }
+    |               LC VAR DefList STMT StmtList ReturnStmt RC { $$ = new BodyAST(std::move(*$3), std::move(*$5), $6); }
+    |               error RC                                { printf("[Parser]Error in CompSt\n"); }
     ; 
 StmtList:           Stmt StmtList                           { $$ = $2; $$->push_back(std::unique_ptr<ExprAST>($1)); }
     |                                                       { $$ = new ast_list(); }
@@ -145,7 +150,7 @@ Stmt:               Exp SEMI                                { $$ = $1; }
     |               IF LP Exp RP Stmt %prec LOWER_THAN_ELSE {  }
     |               IF LP Exp RP Stmt ELSE Stmt             {  }
     |               WHILE LP Exp RP Stmt                    {  }
-    |               error SEMI                              {  }
+    |               error SEMI                              { printf("[Parser]Error in Stmt\n"); }
     ; 
 ReturnStmt:         RETURN Exp SEMI                         { $$ = $2; }
     |               RETURN SEMI                             { $$ = new VoidExprAST(); }
@@ -168,19 +173,19 @@ Exp:                Exp ASSIGNOP Exp                        { $$ = new AssignExp
     |               Exp AND Exp                             { $$ = new BinaryExprAST(*$2, $1, $3); }
     |               Exp OR Exp                              { $$ = new BinaryExprAST(*$2, $1, $3); }
     |               Exp RELOP Exp                           { $$ = new BinaryExprAST(*$2, $1, $3); }
-    |               Exp ADD Exp                            { $$ = new BinaryExprAST(*$2, $1, $3); }
-    |               Exp SUB Exp                           { $$ = new BinaryExprAST(*$2, $1, $3); }
-    |               Exp MUL Exp                            { $$ = new BinaryExprAST(*$2, $1, $3); }
+    |               Exp ADD Exp                             { $$ = new BinaryExprAST(*$2, $1, $3); }
+    |               Exp SUB Exp                             { $$ = new BinaryExprAST(*$2, $1, $3); }
+    |               Exp MUL Exp                             { $$ = new BinaryExprAST(*$2, $1, $3); }
     |               Exp DIV Exp                             { $$ = new BinaryExprAST(*$2, $1, $3); }
     |               LP Exp RP                               { $$ = $2; }
-    |               SUB Exp                               { $$ = new BinaryExprAST(*$1, new IntExprAST(0), $2); }
+    |               SUB Exp                                 { $$ = new BinaryExprAST(*$1, new IntExprAST(0), $2); }
     |               NOT Exp                                 { $$ = new BinaryExprAST(*$1, new VoidExprAST(), $2); }
     |               ID LP Args RP                           { $$ = new CallExprAST(*$1, std::move(*$3)); }
     |               ID LP RP                                { ast_list* void_args; 
                                                               void_args = new ast_list();  
                                                               $$ = new CallExprAST(*$1, std::move(*void_args)); }
-    |               Exp LB Exp RB                           {  }
-    |               Exp DOT ID                              {  }
+    /* |               Exp LB Exp RB                           {  }
+    |               Exp DOT ID                              {  } */
     |               ID                                      { $$ = new VariableExprAST(*$1); }
     |               INT                                     { $$ = new IntExprAST($1); }
     |               FLOAT                                   { $$ = new FloatExprAST($1); }
@@ -190,6 +195,6 @@ Args :              Exp COMMA Args                          { $$ = $3; $$->push_
     ; 
 %%
 
-void yyerror(char* msg){
-    fprintf(stderr, "Error type B at line %d: %s.\n", yylineno, msg);
-}
+/* void yyerror(char* msg){
+    fprintf(stderr, "[Parser]Error at line %d: %s.\n %s\n", yylineno, msg, yytext);
+} */

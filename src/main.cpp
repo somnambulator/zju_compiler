@@ -10,7 +10,7 @@ extern void yyrestart(FILE*);
 int errorLexFlag;
 int errorSyntaxFlag;
 
-extern ExprAST* Program;
+extern ProgramAST* Program;
 
 int main(int argc, char** argv){
     if (argc<=1) return 1;

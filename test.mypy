@@ -1,4 +1,23 @@
+def foo(a:int, b:float)->void:{
+var
+stmt
+    print(a);
+    print(b);
+}
+
 def main()->int:{
-    a:int;
+var    
+    a:int:=1;
+    b:int:=2;
+    c:float:=1.5;
+stmt
+    a:=100;
+    a:=200;
+    a:=100+1;
+    a:=100*2;
+    a:=100-50;
+    a:=(100-50)*30+1;
+    a:=b+1;
+    foo(a,c);
     return 0;
 }

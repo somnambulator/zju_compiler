@@ -17,6 +17,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
+#include <iostream>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -179,6 +180,8 @@ class DecExprAST : public ExprAST{
 public:
   DecExprAST(VariableExprAST* Var, 
              TypeAST* Type) : Var(std::move(Var)), Type(std::move(Type)) {
+               assert(Var != nullptr);
+               assert(Type != nullptr);
                Var->SetType(Type->getType());
                this->SetType(type_Dec);
                name = Var->getName();
@@ -188,6 +191,9 @@ public:
              TypeAST* Type,
              ExprAST* Val) 
              : Var(std::move(Var)), Type(std::move(Type)), Val(Val) {
+               assert(Var != nullptr);
+               assert(Type != nullptr);
+               assert(Val != nullptr);
                Var->SetType(Type->getType());
                this->SetType(type_Dec);
                name = Var->getName();
@@ -196,6 +202,7 @@ public:
   std::string getName() {return name;}
   
   int getDType() {return Type->getType();}
+  VariableExprAST* getVar() {return Var.get();}
              
   llvm::Value *codegen() override;
 };
@@ -218,7 +225,11 @@ class AssignExprAST : public ExprAST {
 public:
   AssignExprAST(ExprAST* LHS,
                 ExprAST* RHS)
-      : LHS(std::move(LHS)), RHS(std::move(RHS)) {this->SetType(type_assignExpr);}
+      : LHS(std::move(LHS)), RHS(std::move(RHS)) { 
+          assert(LHS!=nullptr);
+          assert(RHS!=nullptr);
+          this->SetType(type_assignExpr);
+        }
 
   llvm::Value *codegen() override;
 };
@@ -232,7 +243,11 @@ public:
   BinaryExprAST(std::string Op, 
                 ExprAST* LHS,
                 ExprAST* RHS)
-      : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {this->SetType(type_binaryExpr);}
+      : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {
+          assert(LHS!=nullptr);
+          assert(RHS!=nullptr);
+          this->SetType(type_binaryExpr);
+        }
 
   llvm::Value *codegen() override;
 };
@@ -262,8 +277,15 @@ class PrototypeAST : public ExprAST{
 
 public:
   PrototypeAST(TypeAST* retType, const std::string &Name, ast_list Args)
-      : retType(std::move(retType)), Name(Name), Args(std::move(Args)) {this->SetType(type_FuncProto);}
+      : retType(std::move(retType)), Name(Name), Args(std::move(Args)) {
+          assert(retType!=nullptr);
+          this->SetType(type_FuncProto);
+        }
 
+  int getArgType(int i) {
+    return static_cast<DecExprAST*>(Args[i].get())->getDType();
+  }
+  
   int getRetType() {return retType->getType();}
 
   llvm::Function *codegen();
@@ -280,7 +302,10 @@ public:
   BodyAST(ast_list DefList,
           ast_list StmtList,
           ExprAST* ReturnExpr)
-      : DefList(std::move(DefList)), StmtList(std::move(StmtList)), ReturnExpr(ReturnExpr) {this->SetType(type_FuncBody);}
+      : DefList(std::move(DefList)), StmtList(std::move(StmtList)), ReturnExpr(ReturnExpr) {
+          assert(ReturnExpr!=nullptr);
+          this->SetType(type_FuncBody);
+        }
   
   llvm::Value *codegen();
 };
@@ -294,7 +319,11 @@ class FunctionAST : public ExprAST {
 public:
   FunctionAST(PrototypeAST* Proto,
               BodyAST* Body)
-      : Proto(std::move(Proto)), Body(std::move(Body)) {this->SetType(type_Func);}
+      : Proto(std::move(Proto)), Body(std::move(Body)) {
+          assert(Proto!=nullptr);
+          assert(Body!=nullptr);
+          this->SetType(type_Func);
+        }
   
   void SetReturnExpr(std::unique_ptr<ExprAST> ReturnExpr){
     ReturnExpr = std::move(ReturnExpr);
