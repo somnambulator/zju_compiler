@@ -79,9 +79,10 @@ public:
     else if (TypeName == "bool"){
       this->SetType(type_bool);
     }
-    else if (TypeName == "void"){
-      this->SetType(type_void);
+    else if (TypeName == "char"){
+      this->SetType(type_char);
     }
+    else if (TypeName == "void")
     else{
       this->SetType(type_error);
     }
