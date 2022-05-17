@@ -84,7 +84,7 @@ ProgramAST* Program;
 %%
 
 // High-level Definitions
-Program:            ExtDefList                              { printf("in parser-Program\n"); Program = new ProgramAST(std::move(*$1)); }
+Program:            ExtDefList                              { Program = new ProgramAST(std::move(*$1)); }
     ; 
 ExtDefList:         ExtDef ExtDefList                       { $$ = $2; $$->push_back(std::unique_ptr<ExprAST>($1)); }
     |               MainDef                                 { $$ = new ast_list();
@@ -138,7 +138,7 @@ VarList:            ParamDec COMMA VarList                  { $$ = $3; $$->push_
 ParamDec:           VarDec COLON Specifier                  { $$ = new DecExprAST($1, $3); }
     ; 
 // Statements
-CompSt:             LC VAR DefList STMT StmtList RC         { $$ = new BodyAST(std::move(*$3), std::move(*$5), new VoidExprAST()); }
+CompSt:             LC VAR DefList STMT StmtList RC         { $$ = new BodyAST(std::move(*$3), std::move(*$5)); }
     |               LC VAR DefList STMT StmtList ReturnStmt RC { $$ = new BodyAST(std::move(*$3), std::move(*$5), $6); }
     |               error RC                                { printf("[Parser]Error in CompSt\n"); }
     ; 

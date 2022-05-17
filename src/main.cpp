@@ -23,8 +23,10 @@ int main(int argc, char** argv){
     yyrestart(f);
     std::cout<< "Start to parse." <<std::endl;
     yyparse();
+    std::cout<< "Finish parsing." <<std::endl;
 
     std::cout<< "Start to generate code." <<std::endl;
     Program->codegen();
+    std::cout<< "Finish code generation." <<std::endl;
     return 0;
 }

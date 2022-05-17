@@ -23,8 +23,10 @@ llvm::Type *typeGen(int type){
       return llvm::Type::getInt32Ty(TheContext);
     case type_char:
       return llvm::Type::getInt8Ty(TheContext);
+    case type_charptr:
+      return llvm::Type::getInt8PtrTy(TheContext);
     case type_float:
-      return llvm::Type::getFloatTy(TheContext);
+      return llvm::Type::getDoubleTy(TheContext);
     default:
       return llvm::Type::getInt32Ty(TheContext);
   }
@@ -125,6 +127,7 @@ llvm::Value *DecExprAST::codegen(){
   }
 
   llvm::Value* InitVal;
+  double tmp = 0.0;
   switch (dType)
   {
   case type_bool:
@@ -134,7 +137,7 @@ llvm::Value *DecExprAST::codegen(){
     InitVal = llvm::ConstantInt::get(TheContext, llvm::APInt(32, 0, true));
     break;
   case type_float:
-    InitVal = llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0));
+    InitVal = llvm::ConstantFP::get(TheContext, llvm::APFloat(tmp));
     break;
   default:
     // ERROR
@@ -339,8 +342,8 @@ llvm::Value* FuncPrint(ast_list Args){
   static llvm::Function *printFunc = nullptr;
   // not defined before
   if(!printFunc){
-    std::vector<llvm::Type*> Arg_List = {typeGen(type_char)};
-    llvm::FunctionType *FT = llvm::FunctionType::get(llvm::Type::getInt32Ty(TheContext), Arg_List, false);
+    std::vector<llvm::Type*> Arg_List = {typeGen(type_charptr)};
+    llvm::FunctionType *FT = llvm::FunctionType::get(llvm::Type::getInt32Ty(TheContext), Arg_List, true);
     llvm::Function *F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "printf", TheModule.get());
     //set calling conventions to be C calling conventions
     F->setCallingConv(llvm::CallingConv::C);
@@ -349,8 +352,9 @@ llvm::Value* FuncPrint(ast_list Args){
 
   std::string format;
   std::vector<llvm::Value*> printArgs = {nullptr};
-  for (int i=0;i<Args.size();i++){
+  for (int i=Args.size()-1;i>=0;i--){
     int type = Args[i]->getType();
+    printf("init:%d\n", type);
     llvm::Value *new_arg;
     if(type == type_binaryExpr){
       // for binary expression
@@ -361,6 +365,7 @@ llvm::Value* FuncPrint(ast_list Args){
       // for variable
       new_arg = Args[i]->codegen();
       type = symbolTable.getType(static_cast<VariableExprAST*>(Args[i].get())->getName());
+      printf("then:%d\n", type);
     }
     else if(type == type_CallFunc){
       // for function calls
@@ -368,7 +373,7 @@ llvm::Value* FuncPrint(ast_list Args){
       std::string Callee = static_cast<CallExprAST *>(Args[i].get())->getCallee();
       type = symbolTable.getProtoType(Callee)->getRetType();
     }
-    else if(type > 0 && type < type_float){
+    else if(type > 0 && type <= type_float){
       // for numbers or bools
       new_arg = Args[i]->codegen();
     }
@@ -387,6 +392,9 @@ llvm::Value* FuncPrint(ast_list Args){
     }
   }
 
+  format += "\n";
+
+  std::cout<<format<<std::endl;
   printArgs[0] = Builder.CreateGlobalStringPtr(format, "printfomat");
   return Builder.CreateCall(printFunc, printArgs, "printtmp");
 }
@@ -412,6 +420,10 @@ llvm::Value *CallExprAST::codegen() {
       return nullptr;
   }
 
+  bool HasReturn = symbolTable.getProtoType(Callee)->hasReturn();
+  if(!HasReturn){
+    return Builder.CreateCall(CalleeF, ArgsV);
+  }
   return Builder.CreateCall(CalleeF, ArgsV, "calltmp");
 }
 
@@ -493,12 +505,25 @@ llvm::Function *FunctionAST::codegen() {
     symbolTable.addLocalID(Arg.getName().str(), Proto->getArgType(i++));
   }
 
-  if (llvm::Value *RetVal = Body->codegen()) {
-    // Finish off the function.
-    Builder.CreateRet(RetVal);
+  if(Body->hasReturn()){
+    if (llvm::Value *RetVal = Body->codegen()) {
+      // Finish off the function.
+      Builder.CreateRet(RetVal);
 
+      // Validate the generated code, checking for consistency.
+      llvm::verifyFunction(*TheFunction);
+      // pop variable field from symboltable
+      symbolTable.popIDTable();
+      symbolTable.popNamedValue();
+
+      return TheFunction;
+    }
+  }
+  else{
+    Body->codegen();
     // Validate the generated code, checking for consistency.
     llvm::verifyFunction(*TheFunction);
+    Builder.CreateRet(nullptr);
     // pop variable field from symboltable
     symbolTable.popIDTable();
     symbolTable.popNamedValue();
@@ -518,14 +543,22 @@ llvm::Function *FunctionAST::codegen() {
 }
 
 void *ProgramAST::codegen(){
-    printf("In code_gen.cpp\n");
-    // for C++ 14
-    TheModule = std::make_unique<llvm::Module>("Code Gen", TheContext);
+  // for C++ 14
+  TheModule = std::make_unique<llvm::Module>("Code Gen", TheContext);
 
-    for(int i=ElementList.size()-1;i>=0;i--){
-      ElementList[i]->codegen();
-    }
+  for(int i=ElementList.size()-1;i>=0;i--){
+    ElementList[i]->codegen();
+  }
 
-    // print out TheModule
-    TheModule->print(llvm::errs(), nullptr);
+  // // print TheModule to raw_ostream    
+  // TheModule->print(llvm::errs(), nullptr);
+  // print TheModule to file
+  std::string Str;
+  llvm::raw_string_ostream OS(Str);
+  OS << *TheModule.get();
+  OS.flush();
+  std::ofstream outfile;
+  outfile.open("a.ll");
+  outfile << Str;
+  outfile.close();
 }

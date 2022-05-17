@@ -1583,7 +1583,7 @@ yyreduce:
     {
   case 2:
 #line 87 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { printf("in parser-Program\n"); Program = new ProgramAST(std::move(*(yyvsp[0].AST_list))); }
+                                                            { Program = new ProgramAST(std::move(*(yyvsp[0].AST_list))); }
 #line 1588 "parser.y.cpp"
     break;
 
@@ -1720,7 +1720,7 @@ yyreduce:
 
   case 24:
 #line 141 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.bodyAST) = new BodyAST(std::move(*(yyvsp[-3].AST_list)), std::move(*(yyvsp[-1].AST_list)), new VoidExprAST()); }
+                                                            { (yyval.bodyAST) = new BodyAST(std::move(*(yyvsp[-3].AST_list)), std::move(*(yyvsp[-1].AST_list))); }
 #line 1725 "parser.y.cpp"
     break;
 

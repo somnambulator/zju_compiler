@@ -18,6 +18,7 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
 #include <iostream>
+#include <fstream>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -33,6 +34,7 @@
 #define type_char 3
 #define type_int 4
 #define type_float 5
+#define type_charptr 6
 
 #define type_ID 100
 #define type_binaryExpr 101
@@ -120,10 +122,10 @@ public:
 
 /// FloatExprAST - Expression class for floats like "1.0".
 class FloatExprAST : public ExprAST {
-  float Val;
+  double Val;
 
 public:
-  FloatExprAST(float Val) : Val(Val) {this->SetType(type_float);}
+  FloatExprAST(double Val) : Val(Val) {this->SetType(type_float);}
 
   llvm::Value *codegen() override;
 };
@@ -271,6 +273,7 @@ public:
 /// which captures its name, and its argument names (thus implicitly the number
 /// of arguments the function takes).
 class PrototypeAST : public ExprAST{
+  bool HasReturn;
   std::unique_ptr<TypeAST> retType;
   std::string Name;
   ast_list Args;
@@ -285,7 +288,10 @@ public:
   int getArgType(int i) {
     return static_cast<DecExprAST*>(Args[i].get())->getDType();
   }
-  
+
+  void setReturn(bool ret) {HasReturn = ret;}
+  bool hasReturn() { return HasReturn; }
+
   int getRetType() {return retType->getType();}
 
   llvm::Function *codegen();
@@ -294,6 +300,7 @@ public:
 
 /// BodyAST - This class represents a function body.
 class BodyAST : public ExprAST {
+  bool HasReturn;
   ast_list DefList;
   ast_list StmtList;
   std::unique_ptr<ExprAST> ReturnExpr;
@@ -304,9 +311,19 @@ public:
           ExprAST* ReturnExpr)
       : DefList(std::move(DefList)), StmtList(std::move(StmtList)), ReturnExpr(ReturnExpr) {
           assert(ReturnExpr!=nullptr);
+          HasReturn = 1;
+          this->SetType(type_FuncBody);
+        }
+  BodyAST(ast_list DefList,
+          ast_list StmtList)
+      : DefList(std::move(DefList)), StmtList(std::move(StmtList)), ReturnExpr(new VoidExprAST()) {
+          assert(ReturnExpr!=nullptr);
+          HasReturn = 0;
           this->SetType(type_FuncBody);
         }
   
+  bool hasReturn() { return HasReturn; }
+
   llvm::Value *codegen();
 };
 
@@ -323,6 +340,7 @@ public:
           assert(Proto!=nullptr);
           assert(Body!=nullptr);
           this->SetType(type_Func);
+          Proto->setReturn(Body->hasReturn());
         }
   
   void SetReturnExpr(std::unique_ptr<ExprAST> ReturnExpr){

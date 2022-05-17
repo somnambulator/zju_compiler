@@ -11,6 +11,9 @@ var
     b:int:=2;
     c:float:=1.5;
 stmt
+    print(1);
+    print(1+1);
+    print(432.1);
     a:=100;
     a:=200;
     a:=100+1;
@@ -18,6 +21,9 @@ stmt
     a:=100-50;
     a:=(100-50)*30+1;
     a:=b+1;
+    print(b);
+    c:=2.5;
+    print(c);
     foo(a,c);
     return 0;
 }

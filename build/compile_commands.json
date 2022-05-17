@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/yuanli/zju_compiler/build",
+  "command": "/usr/bin/g++    -g   -o CMakeFiles/mypy.dir/main.cpp.o -c /home/yuanli/zju_compiler/main.cpp",
+  "file": "/home/yuanli/zju_compiler/main.cpp"
+}
+]

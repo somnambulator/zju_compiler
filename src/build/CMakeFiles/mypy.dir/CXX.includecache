@@ -43,6 +43,8 @@ llvm/Transforms/Scalar/GVN.h
 ../llvm/Transforms/Scalar/GVN.h
 iostream
 -
+fstream
+-
 cctype
 -
 cstdio
@@ -98,6 +100,8 @@ llvm/Transforms/Scalar.h
 llvm/Transforms/Scalar/GVN.h
 /home/yuanli/zju_compiler/src/llvm/Transforms/Scalar/GVN.h
 iostream
+-
+fstream
 -
 cctype
 -
