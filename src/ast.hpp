@@ -48,6 +48,8 @@
 #define type_assignExpr 109
 #define type_GlobalDec 110
 #define type_Expr 111
+#define type_ifelse 112
+#define type_for 113
 
 static llvm::LLVMContext TheContext;
 static llvm::IRBuilder<> Builder(TheContext);
@@ -209,12 +211,31 @@ public:
   llvm::Value *codegen() override;
 };
 
-// /// DefListAST - Expression class for referencing a list of definitions.
-// class DefListAST : public ExprAST{
-//   ast_list DefList;
+/// IfExprAST - Expression class for if/then/else.
+class IfExprAST : public ExprAST {
+  std::unique_ptr<ExprAST> Cond, Then, Else;
+
+public:
+  IfExprAST(ExprAST* Cond, ExprAST* Then,ExprAST* Else)
+      : Cond(std::move(Cond)), Then(std::move(Then)), Else(std::move(Else)) { this->SetType(type_ifelse); }
+
+  IfExprAST(ExprAST* Cond, ExprAST* Then)
+      : Cond(std::move(Cond)), Then(std::move(Then)), Else(new VoidExprAST()) { this->SetType(type_ifelse); }
+
+  llvm::Value *codegen() override;
+};
+
+/// ForExprAST - Expression class for for/in.
+// class ForExprAST : public ExprAST {
+//   std::string VarName;
+//   std::unique_ptr<ExprAST> Start, End, Step, Body;
 
 // public:
-//   DefListAST(ast_list DefList) : DefList(std::move(DefList)) {}
+//   ForExprAST(const std::string &VarName, ExprAST* Start,
+//              ExprAST* End, ExprAST* Step,
+//              ExprAST* Body)
+//       : VarName(VarName), Start(std::move(Start)), End(std::move(End)),
+//         Step(std::move(Step)), Body(std::move(Body)) {}
 
 //   llvm::Value *codegen() override;
 // };
@@ -282,6 +303,9 @@ public:
   PrototypeAST(TypeAST* retType, const std::string &Name, ast_list Args)
       : retType(std::move(retType)), Name(Name), Args(std::move(Args)) {
           assert(retType!=nullptr);
+          if (retType->getType()!=type_void){
+            HasReturn = 1;
+          }
           this->SetType(type_FuncProto);
         }
 
@@ -289,7 +313,7 @@ public:
     return static_cast<DecExprAST*>(Args[i].get())->getDType();
   }
 
-  void setReturn(bool ret) {HasReturn = ret;}
+  void setReturn(bool ret) { HasReturn = ret; }
   bool hasReturn() { return HasReturn; }
 
   int getRetType() {return retType->getType();}
@@ -301,6 +325,7 @@ public:
 /// BodyAST - This class represents a function body.
 class BodyAST : public ExprAST {
   bool HasReturn;
+  int RetType;
   ast_list DefList;
   ast_list StmtList;
   std::unique_ptr<ExprAST> ReturnExpr;
@@ -311,18 +336,23 @@ public:
           ExprAST* ReturnExpr)
       : DefList(std::move(DefList)), StmtList(std::move(StmtList)), ReturnExpr(ReturnExpr) {
           assert(ReturnExpr!=nullptr);
-          HasReturn = 1;
           this->SetType(type_FuncBody);
+          HasReturn = 0;
+          RetType = 0;
         }
   BodyAST(ast_list DefList,
           ast_list StmtList)
       : DefList(std::move(DefList)), StmtList(std::move(StmtList)), ReturnExpr(new VoidExprAST()) {
           assert(ReturnExpr!=nullptr);
-          HasReturn = 0;
           this->SetType(type_FuncBody);
+          HasReturn = 0;
+          RetType = 0;
         }
   
+  void setReturn(bool ret) { HasReturn=ret; }
   bool hasReturn() { return HasReturn; }
+
+  void setRetType(int retType) { RetType = retType; }
 
   llvm::Value *codegen();
 };
@@ -340,7 +370,8 @@ public:
           assert(Proto!=nullptr);
           assert(Body!=nullptr);
           this->SetType(type_Func);
-          Proto->setReturn(Body->hasReturn());
+          Body->setReturn(Proto->hasReturn());
+          Body->setRetType(Proto->getRetType());
         }
   
   void SetReturnExpr(std::unique_ptr<ExprAST> ReturnExpr){

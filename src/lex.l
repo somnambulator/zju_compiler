@@ -25,6 +25,7 @@ FLOAT ({digit}*\.?{digit}+|{digit}+\.)
 ID {letter}[_0-9a-zA-Z]*
 RELOP 	">"|"<"|">="|"<="|"=="|"!="
 IF "if"
+ELIF "elif"
 ELSE "else"
 WHILE "while"
 TYPE "int"|"float"|"bool"|"void"
@@ -59,6 +60,7 @@ RC "}"
 {ws}+ { ; }
 \n|\r { ; }
 {IF} { yylval.Str = new std::string(yytext); return IF;}
+{ELIF} { yylval.Str = new std::string(yytext); return ELIF;}
 {ELSE} { yylval.Str = new std::string(yytext); return ELSE; }
 {WHILE} { yylval.Str = new std::string(yytext); return WHILE; }
 {TYPE} { yylval.Str = new std::string(yytext); return TYPE; }

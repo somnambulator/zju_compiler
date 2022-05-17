@@ -127,7 +127,6 @@ llvm::Value *DecExprAST::codegen(){
   }
 
   llvm::Value* InitVal;
-  double tmp = 0.0;
   switch (dType)
   {
   case type_bool:
@@ -137,7 +136,7 @@ llvm::Value *DecExprAST::codegen(){
     InitVal = llvm::ConstantInt::get(TheContext, llvm::APInt(32, 0, true));
     break;
   case type_float:
-    InitVal = llvm::ConstantFP::get(TheContext, llvm::APFloat(tmp));
+    InitVal = llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0));
     break;
   default:
     // ERROR
@@ -151,6 +150,73 @@ llvm::Value *DecExprAST::codegen(){
   symbolTable.addLocalVal(VarName, Alloca);
 
   return Alloca;
+}
+
+llvm::Value *IfExprAST::codegen(){
+  llvm::Value *Condv = Cond->codegen();
+  if(!Condv){
+    std::string err = "No arg for IF condition!";
+    LogErrorV(err);
+    return nullptr;
+  }
+  
+  int dType = Cond->getType();
+  if (dType == type_float){
+    Condv = Builder.CreateFCmpONE(Condv, llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0)), "ifcond");
+  }
+  else if(dType == type_bool){
+    Condv = Builder.CreateICmpNE(Condv, llvm::ConstantInt::get(typeGen(type_bool), 0, false), "ifcond");
+  }
+  else if(dType == type_int){
+    Condv = Builder.CreateICmpNE(Condv, llvm::ConstantInt::get(typeGen(type_int), 0, false), "ifcond");
+  }
+  else{
+    std::string err = "Wrong condition type!";
+    LogErrorV(err);
+    return nullptr;
+  }
+
+  llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+
+  llvm::BasicBlock *ThenBB = llvm::BasicBlock::Create(TheContext, "then", TheFunction);
+  llvm::BasicBlock *ElseBB = llvm::BasicBlock::Create(TheContext, "else");
+  llvm::BasicBlock *MergeBB = llvm::BasicBlock::Create(TheContext, "ifcont");
+  Builder.CreateCondBr(Condv, ThenBB, ElseBB);
+
+  // place holder
+  IntExprAST* intexpr = new IntExprAST(0);
+
+  // Emit then value.
+  Builder.SetInsertPoint(ThenBB);
+  llvm::Value *ThenV = Then->codegen();
+  if (!ThenV)
+    return nullptr;
+  // insert the placeholder as the ret val of the branch
+  intexpr->codegen();
+  Builder.CreateBr(MergeBB);
+  // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+  ThenBB = Builder.GetInsertBlock();
+
+  // Emit else block.
+  TheFunction->getBasicBlockList().push_back(ElseBB);
+  Builder.SetInsertPoint(ElseBB);
+  llvm::Value *ElseV = Else->codegen();
+  if (!ElseV)
+    return nullptr;
+  // insert the placeholder as the ret val of the branch
+  intexpr->codegen();
+  Builder.CreateBr(MergeBB);
+  // codegen of 'Else' can change the current block, update ElseBB for the PHI.
+  ElseBB = Builder.GetInsertBlock();
+
+  TheFunction->getBasicBlockList().push_back(MergeBB);
+  Builder.SetInsertPoint(MergeBB);
+
+  llvm::PHINode *PN = Builder.CreatePHI(typeGen(type_int), 2, "iftmp");
+
+  PN->addIncoming(ThenV, ThenBB);
+  PN->addIncoming(ElseV, ElseBB);
+  return PN;
 }
 
 llvm::Value *AssignExprAST::codegen(){
@@ -354,7 +420,6 @@ llvm::Value* FuncPrint(ast_list Args){
   std::vector<llvm::Value*> printArgs = {nullptr};
   for (int i=Args.size()-1;i>=0;i--){
     int type = Args[i]->getType();
-    printf("init:%d\n", type);
     llvm::Value *new_arg;
     if(type == type_binaryExpr){
       // for binary expression
@@ -365,7 +430,6 @@ llvm::Value* FuncPrint(ast_list Args){
       // for variable
       new_arg = Args[i]->codegen();
       type = symbolTable.getType(static_cast<VariableExprAST*>(Args[i].get())->getName());
-      printf("then:%d\n", type);
     }
     else if(type == type_CallFunc){
       // for function calls
@@ -394,7 +458,6 @@ llvm::Value* FuncPrint(ast_list Args){
 
   format += "\n";
 
-  std::cout<<format<<std::endl;
   printArgs[0] = Builder.CreateGlobalStringPtr(format, "printfomat");
   return Builder.CreateCall(printFunc, printArgs, "printtmp");
 }
@@ -419,6 +482,10 @@ llvm::Value *CallExprAST::codegen() {
     if (!ArgsV.back())
       return nullptr;
   }
+
+  // set data type recursively
+  int retDtype = symbolTable.getProtoType(Callee)->getRetType();
+  this->SetType(retDtype);
 
   bool HasReturn = symbolTable.getProtoType(Callee)->hasReturn();
   if(!HasReturn){
@@ -466,8 +533,41 @@ llvm::Value *BodyAST::codegen() {
     // tell the type of stmt
     StmtList[i]->codegen();
   }
-  if (ReturnExpr){
-    return ReturnExpr->codegen();
+
+  if(ReturnExpr->getType()!=type_void && HasReturn){
+      llvm::Value* val = ReturnExpr->codegen();
+      Builder.CreateRet(val);
+      
+      return val;
+  }
+  else if(ReturnExpr->getType()!=type_void && !HasReturn){
+      llvm::Value* val = ReturnExpr->codegen();
+      Builder.CreateRet(val);
+
+      // insert new block
+      llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+      llvm::BasicBlock *afterRetBB = llvm::BasicBlock::Create(TheContext, "after_ret");
+      TheFunction->getBasicBlockList().push_back(afterRetBB);
+      Builder.SetInsertPoint(afterRetBB);
+      
+      return val;
+  }
+  else if (ReturnExpr->getType()==type_void && HasReturn){
+    ExprAST* DefaultReturnExpr;
+    llvm::Value *val;
+    if (RetType == type_float){
+      val = llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0));
+    }
+    else if(RetType == type_bool || RetType == type_int){
+      val = llvm::ConstantInt::get(typeGen(RetType), 0, false);
+    }
+    Builder.CreateRet(val);
+    
+    // IntExprAST* intexpr = new IntExprAST(0);
+    // BinaryExprAST* placeholder = new BinaryExprAST("+", intexpr, intexpr);
+    // placeholder->codegen();
+
+    return val;
   }
   return llvm::ConstantPointerNull::getNullValue(typeGen(type_int));;
 }
@@ -505,10 +605,10 @@ llvm::Function *FunctionAST::codegen() {
     symbolTable.addLocalID(Arg.getName().str(), Proto->getArgType(i++));
   }
 
-  if(Body->hasReturn()){
+  if(Proto->hasReturn()){
     if (llvm::Value *RetVal = Body->codegen()) {
       // Finish off the function.
-      Builder.CreateRet(RetVal);
+      // Builder.CreateRet(RetVal);
 
       // Validate the generated code, checking for consistency.
       llvm::verifyFunction(*TheFunction);
@@ -524,6 +624,16 @@ llvm::Function *FunctionAST::codegen() {
     // Validate the generated code, checking for consistency.
     llvm::verifyFunction(*TheFunction);
     Builder.CreateRet(nullptr);
+    // insert new block
+    // llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+    // llvm::BasicBlock *afterRetBB = llvm::BasicBlock::Create(TheContext, "after_ret");
+    // TheFunction->getBasicBlockList().push_back(afterRetBB);
+    // Builder.SetInsertPoint(afterRetBB);
+
+    // IntExprAST* intexpr = new IntExprAST(0);
+    // BinaryExprAST* placeholder = new BinaryExprAST("+", intexpr, intexpr);
+    // placeholder->codegen();
+    
     // pop variable field from symboltable
     symbolTable.popIDTable();
     symbolTable.popNamedValue();

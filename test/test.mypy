@@ -5,6 +5,12 @@ stmt
     print(b);
 }
 
+def bar()->int:{
+var
+stmt
+    return 111+2;
+}
+
 def main()->int:{
 var    
     a:int:=1;
@@ -25,5 +31,6 @@ stmt
     c:=2.5;
     print(c);
     foo(a,c);
+    print(bar());
     return 0;
 }
