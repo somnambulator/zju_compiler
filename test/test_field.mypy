@@ -1,0 +1,17 @@
+gi:int;
+gf:float;
+
+def main()->void:{
+var
+    a:int:=1;
+stmt
+    {
+    var
+        b:int:=1;
+    stmt
+        print(b);
+    }
+    print(a);
+    print(gi+7);
+    print(g+7.7);
+}

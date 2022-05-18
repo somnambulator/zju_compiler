@@ -50,6 +50,7 @@
 #define type_Expr 111
 #define type_ifelse 112
 #define type_for 113
+#define type_while 114
 
 static llvm::LLVMContext TheContext;
 static llvm::IRBuilder<> Builder(TheContext);
@@ -59,6 +60,7 @@ static std::unique_ptr<llvm::Module> TheModule;
 class ExprAST {
   int type;
   bool global;
+  int lineno;
 public:
   ExprAST() : type(type_Expr){}
   virtual ~ExprAST() = default;
@@ -93,7 +95,11 @@ public:
     return type;
   }
 
+  void setLineno(int line){ lineno = line; }
+  int getLineno() {return lineno;}
+
   virtual llvm::Value *codegen() = 0;
+  // virtual llvm::Value *GlobalCodegen() = 0;
 };
 
 typedef std::vector<std::unique_ptr<ExprAST>> ast_list;
@@ -159,7 +165,9 @@ class GlobalDecListAST : public ExprAST{
   ast_list VarList;
 
 public:
-  GlobalDecListAST(ast_list List) : VarList(std::move(List)) {this->SetType(type_GlobalDec);}
+  GlobalDecListAST(ast_list List) : VarList(std::move(List)) {
+      this->SetType(type_GlobalDec);
+    }
 
   llvm::Value *codegen() override;
 };
@@ -176,6 +184,7 @@ public:
 
 /// DecExprAST - Expression class for referencing a declaration, like "a:int".
 class DecExprAST : public ExprAST{
+  bool global;
   std::unique_ptr<VariableExprAST> Var;
   std::unique_ptr<TypeAST> Type;
   std::unique_ptr<ExprAST> Val;
@@ -183,21 +192,10 @@ class DecExprAST : public ExprAST{
 
 public:
   DecExprAST(VariableExprAST* Var, 
-             TypeAST* Type) : Var(std::move(Var)), Type(std::move(Type)) {
-               assert(Var != nullptr);
-               assert(Type != nullptr);
-               Var->SetType(Type->getType());
-               this->SetType(type_Dec);
-               name = Var->getName();
-             }
-  
-  DecExprAST(VariableExprAST* Var, 
              TypeAST* Type,
-             ExprAST* Val) 
-             : Var(std::move(Var)), Type(std::move(Type)), Val(Val) {
+             bool global) : Var(std::move(Var)), Type(std::move(Type)), global(global) {
                assert(Var != nullptr);
                assert(Type != nullptr);
-               assert(Val != nullptr);
                Var->SetType(Type->getType());
                this->SetType(type_Dec);
                name = Var->getName();
@@ -209,6 +207,7 @@ public:
   VariableExprAST* getVar() {return Var.get();}
              
   llvm::Value *codegen() override;
+  // llvm::Value *GlobalCodegen() override;
 };
 
 /// IfExprAST - Expression class for if/then/else.
@@ -225,20 +224,41 @@ public:
   llvm::Value *codegen() override;
 };
 
-/// ForExprAST - Expression class for for/in.
-// class ForExprAST : public ExprAST {
-//   std::string VarName;
-//   std::unique_ptr<ExprAST> Start, End, Step, Body;
+// ForExprAST - Expression class for for/in.
+class ForExprAST : public ExprAST {
+  std::unique_ptr<VariableExprAST> ID;
+  std::unique_ptr<ExprAST> Start, End, Step;
+  std::unique_ptr<ExprAST>Body;
 
-// public:
-//   ForExprAST(const std::string &VarName, ExprAST* Start,
-//              ExprAST* End, ExprAST* Step,
-//              ExprAST* Body)
-//       : VarName(VarName), Start(std::move(Start)), End(std::move(End)),
-//         Step(std::move(Step)), Body(std::move(Body)) {}
+public:
+  ForExprAST(VariableExprAST* ID, 
+             ExprAST* Start,
+             ExprAST* End, ExprAST* Step,
+             ExprAST* Body)
+      : ID(std::move(ID)), Start(std::move(Start)), End(std::move(End)),
+        Step(std::move(Step)), Body(std::move(Body)) { this->SetType(type_for); }
+  
+  ForExprAST(VariableExprAST* ID, 
+             ExprAST* Start,
+             ExprAST* End, 
+             ExprAST* Body)
+      : ID(std::move(ID)), Start(std::move(Start)), End(std::move(End)),
+        Step(new IntExprAST(1)), Body(std::move(Body)) { this->SetType(type_for); }
 
-//   llvm::Value *codegen() override;
-// };
+  llvm::Value *codegen() override;
+};
+
+// WhileExprAST - Expression class for while.
+class WhileExprAST : public ExprAST {
+  std::unique_ptr<ExprAST> Condv;
+  std::unique_ptr<ExprAST> Body;
+
+public:
+  WhileExprAST(ExprAST* Condv, ExprAST* Body)
+      : Condv(std::move(Condv)), Body(std::move(Body)) { this->SetType(type_while); }
+
+  llvm::Value *codegen() override;
+};
 
 /// AssignExprAST - Expression class for a binary operator.
 class AssignExprAST : public ExprAST {
@@ -303,9 +323,9 @@ public:
   PrototypeAST(TypeAST* retType, const std::string &Name, ast_list Args)
       : retType(std::move(retType)), Name(Name), Args(std::move(Args)) {
           assert(retType!=nullptr);
-          if (retType->getType()!=type_void){
-            HasReturn = 1;
-          }
+          // if (retType->getType()!=type_void){
+          //   HasReturn = 1;
+          // }
           this->SetType(type_FuncProto);
         }
 
@@ -337,7 +357,7 @@ public:
       : DefList(std::move(DefList)), StmtList(std::move(StmtList)), ReturnExpr(ReturnExpr) {
           assert(ReturnExpr!=nullptr);
           this->SetType(type_FuncBody);
-          HasReturn = 0;
+          HasReturn = 1;
           RetType = 0;
         }
   BodyAST(ast_list DefList,
@@ -370,7 +390,7 @@ public:
           assert(Proto!=nullptr);
           assert(Body!=nullptr);
           this->SetType(type_Func);
-          Body->setReturn(Proto->hasReturn());
+          Proto->setReturn(Body->hasReturn());
           Body->setRetType(Proto->getRetType());
         }
   

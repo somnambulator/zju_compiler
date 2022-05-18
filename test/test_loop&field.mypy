@@ -1,0 +1,35 @@
+def foo()->void:{
+var
+    a:int:=555, i:float;
+    b:float;
+stmt
+    b := 1.1<2 && 1<3*0.4;
+    print(b);
+    for i in range(0.1, 5.5, 1.1):{
+    var
+    stmt
+        if(i < 4):{
+        var
+            tmp:int:=1;
+        stmt
+            print(a, i);
+        } else: {
+        var
+        stmt
+            tmp:=2;
+            while (b < 7):{
+            var
+            stmt
+                print(b);
+                b := b+1.1;
+            }
+            return;
+        }
+    }
+}
+
+def main()->void:{
+var
+stmt
+    foo();
+}

@@ -28,6 +28,9 @@ IF "if"
 ELIF "elif"
 ELSE "else"
 WHILE "while"
+FOR "for"
+IN "in"
+RANGE "range"
 TYPE "int"|"float"|"bool"|"void"
 STRUCT "struct"
 DEF "def"
@@ -63,6 +66,9 @@ RC "}"
 {ELIF} { yylval.Str = new std::string(yytext); return ELIF;}
 {ELSE} { yylval.Str = new std::string(yytext); return ELSE; }
 {WHILE} { yylval.Str = new std::string(yytext); return WHILE; }
+{FOR} { yylval.Str = new std::string(yytext); return FOR; }
+{IN} { yylval.Str = new std::string(yytext); return IN; }
+{RANGE} { yylval.Str = new std::string(yytext); return RANGE; }
 {TYPE} { yylval.Str = new std::string(yytext); return TYPE; }
 {STRUCT} { yylval.Str = new std::string(yytext); return STRUCT; }
 

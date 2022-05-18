@@ -93,12 +93,13 @@ public:
             return _FindGlobalValue(name);
         }
         return value;
-        return nullptr;
     }
 
     llvm::Value *_FindValue(std::string name){
-        if(NamedValues.back()->find(name) != NamedValues.back()->end()){
-            return (*NamedValues.back())[name];
+        for (int i=NamedValues.size()-1;i>=0;i--){
+            if(NamedValues[i]->find(name) != NamedValues[i]->end()){
+                return (*NamedValues[i])[name];
+            }
         }
         return nullptr;
     }
@@ -111,8 +112,10 @@ public:
     }
 
     int FindID(std::string name){
-        if(IDTable.back()->find(name) != IDTable.back()->end()){
-            return (*IDTable.back())[name];
+        for(int i=IDTable.size()-1;i>=0;i--){
+            if(IDTable[i]->find(name) != IDTable[i]->end()){
+                return (*IDTable[i])[name];
+            }
         }
         if (GlobalIDTable.find(name) != GlobalIDTable.end()){
             return GlobalIDTable[name];

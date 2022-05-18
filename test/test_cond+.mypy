@@ -1,15 +1,17 @@
-def foo() -> int: {
+def foo() -> void: {
 var
     a:int := 0;
 stmt
     if(a == 1):{
     var
     stmt
-        return 1;
+        print(1);
+        return ;
     } else : {
     var
     stmt
-        return 2;
+        print(2);
+        return ;
     }
 }
 

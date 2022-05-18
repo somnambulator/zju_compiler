@@ -1,6 +1,6 @@
 def main() -> int: {
 var
-    a:int := 0;
+    a:int := 0, b:float:=1.234;
 stmt
     if(a == 1):{
     var
@@ -11,6 +11,6 @@ stmt
     stmt
         a := 2;
     }
-    print(a);
+    print(a, b);
     return 0;
 }

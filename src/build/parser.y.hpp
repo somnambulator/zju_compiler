@@ -58,32 +58,35 @@ extern int yydebug;
     STRUCT = 264,
     IF = 265,
     WHILE = 266,
-    TYPE = 267,
-    ELSE = 268,
-    ELIF = 269,
-    DEF = 270,
-    RETURN = 271,
-    MAIN = 272,
-    VAR = 273,
-    STMT = 274,
-    ID = 275,
-    INT = 276,
-    FLOAT = 277,
-    ASSIGNOP = 278,
-    OR = 279,
-    AND = 280,
-    RELOP = 281,
-    ADD = 282,
-    SUB = 283,
-    MUL = 284,
-    DIV = 285,
-    NOT = 286,
-    DOT = 287,
-    LB = 288,
-    RB = 289,
-    LP = 290,
-    RP = 291,
-    LOWER_THAN_ELSE = 292
+    FOR = 267,
+    TYPE = 268,
+    ELSE = 269,
+    ELIF = 270,
+    IN = 271,
+    RANGE = 272,
+    DEF = 273,
+    RETURN = 274,
+    MAIN = 275,
+    VAR = 276,
+    STMT = 277,
+    ID = 278,
+    INT = 279,
+    FLOAT = 280,
+    ASSIGNOP = 281,
+    OR = 282,
+    AND = 283,
+    RELOP = 284,
+    ADD = 285,
+    SUB = 286,
+    MUL = 287,
+    DIV = 288,
+    NOT = 289,
+    DOT = 290,
+    LB = 291,
+    RB = 292,
+    LP = 293,
+    RP = 294,
+    LOWER_THAN_ELSE = 295
   };
 #endif
 
@@ -110,7 +113,7 @@ union YYSTYPE
     DecExprAST* decexprAST;
     DecListAST* declistAST;
 
-#line 114 "parser.y.hpp"
+#line 117 "parser.y.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
