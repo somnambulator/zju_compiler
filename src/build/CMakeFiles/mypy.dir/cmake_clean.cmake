@@ -1,9 +1,9 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/mypy.dir/ast.cpp.o"
   "CMakeFiles/mypy.dir/code_gen.cpp.o"
   "CMakeFiles/mypy.dir/lex.l.cpp.o"
   "CMakeFiles/mypy.dir/main.cpp.o"
   "CMakeFiles/mypy.dir/parser.y.cpp.o"
+  "CMakeFiles/mypy.dir/print_ast.cpp.o"
   "lex.l.cpp"
   "mypy"
   "mypy.pdb"

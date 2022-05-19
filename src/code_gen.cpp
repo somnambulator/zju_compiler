@@ -348,22 +348,13 @@ llvm::Value* WhileExprAST::codegen(){
   // Make the new basic block for the loop header, inserting after current
   // block.
   llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
-  llvm::BasicBlock *PreheaderBB = Builder.GetInsertBlock();
-  llvm::BasicBlock *LoopBB =
-      llvm::BasicBlock::Create(TheContext, "loop", TheFunction);
-  // Insert an explicit fall through from the current block to the LoopBB.
-  Builder.CreateBr(LoopBB);
-  // Start insertion in LoopBB.
-  Builder.SetInsertPoint(LoopBB);
-  // Start the PHI node with an entry for Start.
-  llvm::PHINode *Variable = Builder.CreatePHI(typeGen(type_int), 2, "loopentry");
-  Variable->addIncoming(intVal, PreheaderBB);
-  // Emit the body of the loop.  This, like any other expr, can change the
-  // current BB.  Note that we ignore the value computed by the body, but don't
-  // allow an error.
-  if (!Body->codegen())
-    return nullptr;
-  
+
+  llvm::BasicBlock *CondBB = llvm::BasicBlock::Create(TheContext, "CondBB", TheFunction);
+  llvm::BasicBlock *LoopBB = llvm::BasicBlock::Create(TheContext, "loop", TheFunction);
+  llvm::BasicBlock *AfterBB = llvm::BasicBlock::Create(TheContext, "afterloop", TheFunction);
+
+  Builder.CreateBr(CondBB);
+  Builder.SetInsertPoint(CondBB);
   // Compute the end condition.
   llvm::Value* EndCond = Condv->codegen();
   if (!EndCond)
@@ -372,16 +363,30 @@ llvm::Value* WhileExprAST::codegen(){
   // Convert condition to a bool by comparing non-equal to 0.0.
   EndCond = Builder.CreateICmpNE(EndCond, llvm::ConstantInt::get(typeGen(type_bool), 0, false), "loopcond");
 
-  // Create the "after loop" block and insert it.
-  llvm::BasicBlock *LoopEndBB = Builder.GetInsertBlock();
-  llvm::BasicBlock *AfterBB =
-      llvm::BasicBlock::Create(TheContext, "afterloop", TheFunction);
+  llvm::BasicBlock *PreloopBB = Builder.GetInsertBlock();
   // Insert the conditional branch into the end of LoopEndBB.
   Builder.CreateCondBr(EndCond, LoopBB, AfterBB);
+  // Insert an explicit fall through from the current block to the LoopBB.
+  Builder.CreateBr(LoopBB);
+  // Start insertion in LoopBB.
+  Builder.SetInsertPoint(LoopBB);
+  // Emit the body of the loop.  This, like any other expr, can change the
+  // current BB.  Note that we ignore the value computed by the body, but don't
+  // allow an error.
+  if (!Body->codegen())
+    return nullptr;
+
+  // Create the "after loop" block and insert it.
+  llvm::BasicBlock *LoopEndBB = Builder.GetInsertBlock();
+
+  Builder.CreateBr(CondBB);
   // Any new code will be inserted in AfterBB.
   Builder.SetInsertPoint(AfterBB);
 
-  // Add a new entry to the PHI node for the backedge.
+  // Start the PHI node with an entry for Start.
+  llvm::PHINode *Variable = Builder.CreatePHI(typeGen(type_int), 2, "loopexit");
+
+  Variable->addIncoming(intVal, CondBB);
   Variable->addIncoming(intVal, LoopEndBB);
   
   // for expr always returns 0.0.
@@ -853,7 +858,7 @@ llvm::Function *FunctionAST::codegen() {
   return nullptr;
 }
 
-void *ProgramAST::codegen(){
+std::string ProgramAST::codegen(){
   // for C++ 14
   TheModule = std::make_unique<llvm::Module>("Code Gen", TheContext);
 
@@ -868,8 +873,5 @@ void *ProgramAST::codegen(){
   llvm::raw_string_ostream OS(Str);
   OS << *TheModule.get();
   OS.flush();
-  std::ofstream outfile;
-  outfile.open("a.ll");
-  outfile << Str;
-  outfile.close();
+  return Str;
 }

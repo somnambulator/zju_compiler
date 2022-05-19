@@ -162,33 +162,6 @@ intrinsics_gen/fast:
 	$(MAKE) -f CMakeFiles/intrinsics_gen.dir/build.make CMakeFiles/intrinsics_gen.dir/build
 .PHONY : intrinsics_gen/fast
 
-ast.o: ast.cpp.o
-
-.PHONY : ast.o
-
-# target to build an object file
-ast.cpp.o:
-	$(MAKE) -f CMakeFiles/mypy.dir/build.make CMakeFiles/mypy.dir/ast.cpp.o
-.PHONY : ast.cpp.o
-
-ast.i: ast.cpp.i
-
-.PHONY : ast.i
-
-# target to preprocess a source file
-ast.cpp.i:
-	$(MAKE) -f CMakeFiles/mypy.dir/build.make CMakeFiles/mypy.dir/ast.cpp.i
-.PHONY : ast.cpp.i
-
-ast.s: ast.cpp.s
-
-.PHONY : ast.s
-
-# target to generate assembly for a file
-ast.cpp.s:
-	$(MAKE) -f CMakeFiles/mypy.dir/build.make CMakeFiles/mypy.dir/ast.cpp.s
-.PHONY : ast.cpp.s
-
 code_gen.o: code_gen.cpp.o
 
 .PHONY : code_gen.o
@@ -297,6 +270,33 @@ parser.y.cpp.s:
 	$(MAKE) -f CMakeFiles/mypy.dir/build.make CMakeFiles/mypy.dir/parser.y.cpp.s
 .PHONY : parser.y.cpp.s
 
+print_ast.o: print_ast.cpp.o
+
+.PHONY : print_ast.o
+
+# target to build an object file
+print_ast.cpp.o:
+	$(MAKE) -f CMakeFiles/mypy.dir/build.make CMakeFiles/mypy.dir/print_ast.cpp.o
+.PHONY : print_ast.cpp.o
+
+print_ast.i: print_ast.cpp.i
+
+.PHONY : print_ast.i
+
+# target to preprocess a source file
+print_ast.cpp.i:
+	$(MAKE) -f CMakeFiles/mypy.dir/build.make CMakeFiles/mypy.dir/print_ast.cpp.i
+.PHONY : print_ast.cpp.i
+
+print_ast.s: print_ast.cpp.s
+
+.PHONY : print_ast.s
+
+# target to generate assembly for a file
+print_ast.cpp.s:
+	$(MAKE) -f CMakeFiles/mypy.dir/build.make CMakeFiles/mypy.dir/print_ast.cpp.s
+.PHONY : print_ast.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -309,9 +309,6 @@ help:
 	@echo "... edit_cache"
 	@echo "... omp_gen"
 	@echo "... intrinsics_gen"
-	@echo "... ast.o"
-	@echo "... ast.i"
-	@echo "... ast.s"
 	@echo "... code_gen.o"
 	@echo "... code_gen.i"
 	@echo "... code_gen.s"
@@ -324,6 +321,9 @@ help:
 	@echo "... parser.y.o"
 	@echo "... parser.y.i"
 	@echo "... parser.y.s"
+	@echo "... print_ast.o"
+	@echo "... print_ast.i"
+	@echo "... print_ast.s"
 .PHONY : help
 
 

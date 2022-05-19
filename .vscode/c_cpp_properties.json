@@ -7,7 +7,8 @@
                 "${workspaceFolder}/src/**",
                 "/usr/include/**",
                 "/usr/include/llvm-13/**",
-                "/usr/include/llvm-13/llvm/**"
+                "/usr/include/llvm-13/llvm/**",
+                "/usr/include/jsoncpp/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/g++",

@@ -1,1 +1,0 @@
-/usr/bin/g++  -g  -rdynamic CMakeFiles/mypy.dir/main.cpp.o  -o mypy 

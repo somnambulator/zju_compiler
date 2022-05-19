@@ -17,6 +17,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
+#include "json/json.h"
 #include <iostream>
 #include <fstream>
 #include <cctype>
@@ -91,6 +92,32 @@ public:
     }
   }
 
+  std::string getTypeStr(){
+    std::string ret;
+    switch (type)
+    {
+    case type_void:
+      ret = "Void";
+      break;
+    case type_bool:
+      ret = "Bool";
+      break;
+    case type_int:
+      ret = "Int";
+      break;
+    case type_float:
+      ret = "Float";
+      break;
+    case type_char:
+      ret = "Char";
+      break;
+    default:
+      ret = "Unknown Type";
+      break;
+    }
+    return ret;
+  }
+
   int getType(){
     return type;
   }
@@ -100,6 +127,7 @@ public:
 
   virtual llvm::Value *codegen() = 0;
   // virtual llvm::Value *GlobalCodegen() = 0;
+  virtual Json::Value print() = 0;
 };
 
 typedef std::vector<std::unique_ptr<ExprAST>> ast_list;
@@ -116,6 +144,7 @@ public:
   }
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 /// IntExprAST - Expression class for integers like "1".
@@ -126,6 +155,7 @@ public:
   IntExprAST(int Val) : Val(Val) {this->SetType(type_int);}
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 /// FloatExprAST - Expression class for floats like "1.0".
@@ -136,6 +166,7 @@ public:
   FloatExprAST(double Val) : Val(Val) {this->SetType(type_float);}
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 /// FloatExprAST - Expression class for void.
@@ -145,6 +176,7 @@ public:
   VoidExprAST() {this->SetType(type_void);}
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 /// VariableExprAST - Expression class for referencing a variable, like "a".
@@ -157,6 +189,7 @@ public:
   std::string getName() {return Name;}
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 /// GlobalDecListAST - Expression class for referencing a list of global declarations
@@ -170,6 +203,7 @@ public:
     }
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 /// DecListAST - Expression class for referencing a list of declarations.
@@ -180,6 +214,7 @@ public:
   DecListAST(ast_list List) : VarList(std::move(List)) {this->SetType(type_DecList);}
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 /// DecExprAST - Expression class for referencing a declaration, like "a:int".
@@ -187,7 +222,6 @@ class DecExprAST : public ExprAST{
   bool global;
   std::unique_ptr<VariableExprAST> Var;
   std::unique_ptr<TypeAST> Type;
-  std::unique_ptr<ExprAST> Val;
   std::string name;
 
 public:
@@ -207,7 +241,7 @@ public:
   VariableExprAST* getVar() {return Var.get();}
              
   llvm::Value *codegen() override;
-  // llvm::Value *GlobalCodegen() override;
+  Json::Value print() override;
 };
 
 /// IfExprAST - Expression class for if/then/else.
@@ -222,6 +256,7 @@ public:
       : Cond(std::move(Cond)), Then(std::move(Then)), Else(new VoidExprAST()) { this->SetType(type_ifelse); }
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 // ForExprAST - Expression class for for/in.
@@ -246,6 +281,7 @@ public:
         Step(new IntExprAST(1)), Body(std::move(Body)) { this->SetType(type_for); }
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 // WhileExprAST - Expression class for while.
@@ -258,6 +294,7 @@ public:
       : Condv(std::move(Condv)), Body(std::move(Body)) { this->SetType(type_while); }
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 /// AssignExprAST - Expression class for a binary operator.
@@ -275,6 +312,7 @@ public:
         }
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 /// BinaryExprAST - Expression class for a binary operator.
@@ -293,6 +331,7 @@ public:
         }
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 /// CallExprAST - Expression class for function calls.
@@ -308,6 +347,7 @@ public:
   std::string getCallee() {return Callee;}
 
   llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 /// PrototypeAST - This class represents the "prototype" for a function,
@@ -339,6 +379,7 @@ public:
   int getRetType() {return retType->getType();}
 
   llvm::Function *codegen();
+  Json::Value print() override;
   const std::string &getName() const { return Name; }
 };
 
@@ -374,14 +415,14 @@ public:
 
   void setRetType(int retType) { RetType = retType; }
 
-  llvm::Value *codegen();
+  llvm::Value *codegen() override;
+  Json::Value print() override;
 };
 
 /// FunctionAST - This class represents a function definition itself.
 class FunctionAST : public ExprAST {
   std::unique_ptr<PrototypeAST> Proto;
   std::unique_ptr<BodyAST> Body;
-  std::unique_ptr<ExprAST> ReturnExpr;
 
 public:
   FunctionAST(PrototypeAST* Proto,
@@ -393,12 +434,9 @@ public:
           Proto->setReturn(Body->hasReturn());
           Body->setRetType(Proto->getRetType());
         }
-  
-  void SetReturnExpr(std::unique_ptr<ExprAST> ReturnExpr){
-    ReturnExpr = std::move(ReturnExpr);
-  }
 
   llvm::Function *codegen();
+  Json::Value print() override;
 };
 
 /// PorgramAST - This class represents a Program, also used as root.
@@ -408,5 +446,6 @@ class ProgramAST {
 public:
   ProgramAST(ast_list List) : ElementList(std::move(List)) {}
   
-  void *codegen();
+  std::string codegen();
+  Json::Value print();
 };

@@ -1,0 +1,12 @@
+
+def main()->void:{
+var
+    i:int:=1;
+stmt
+    while(i<26):{
+    var
+    stmt
+        print(i);
+        i := i+1;
+    }
+}

@@ -82,22 +82,9 @@ CMakeFiles/mypy.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/mypy.dir/main.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yuanli/zju_compiler/src/main.cpp -o CMakeFiles/mypy.dir/main.cpp.s
 
-CMakeFiles/mypy.dir/ast.cpp.o: CMakeFiles/mypy.dir/flags.make
-CMakeFiles/mypy.dir/ast.cpp.o: ../ast.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yuanli/zju_compiler/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/mypy.dir/ast.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/mypy.dir/ast.cpp.o -c /home/yuanli/zju_compiler/src/ast.cpp
-
-CMakeFiles/mypy.dir/ast.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/mypy.dir/ast.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yuanli/zju_compiler/src/ast.cpp > CMakeFiles/mypy.dir/ast.cpp.i
-
-CMakeFiles/mypy.dir/ast.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/mypy.dir/ast.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yuanli/zju_compiler/src/ast.cpp -o CMakeFiles/mypy.dir/ast.cpp.s
-
 CMakeFiles/mypy.dir/code_gen.cpp.o: CMakeFiles/mypy.dir/flags.make
 CMakeFiles/mypy.dir/code_gen.cpp.o: ../code_gen.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yuanli/zju_compiler/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/mypy.dir/code_gen.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yuanli/zju_compiler/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/mypy.dir/code_gen.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/mypy.dir/code_gen.cpp.o -c /home/yuanli/zju_compiler/src/code_gen.cpp
 
 CMakeFiles/mypy.dir/code_gen.cpp.i: cmake_force
@@ -110,7 +97,7 @@ CMakeFiles/mypy.dir/code_gen.cpp.s: cmake_force
 
 CMakeFiles/mypy.dir/lex.l.cpp.o: CMakeFiles/mypy.dir/flags.make
 CMakeFiles/mypy.dir/lex.l.cpp.o: lex.l.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yuanli/zju_compiler/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/mypy.dir/lex.l.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yuanli/zju_compiler/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/mypy.dir/lex.l.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/mypy.dir/lex.l.cpp.o -c /home/yuanli/zju_compiler/src/build/lex.l.cpp
 
 CMakeFiles/mypy.dir/lex.l.cpp.i: cmake_force
@@ -120,6 +107,19 @@ CMakeFiles/mypy.dir/lex.l.cpp.i: cmake_force
 CMakeFiles/mypy.dir/lex.l.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/mypy.dir/lex.l.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yuanli/zju_compiler/src/build/lex.l.cpp -o CMakeFiles/mypy.dir/lex.l.cpp.s
+
+CMakeFiles/mypy.dir/print_ast.cpp.o: CMakeFiles/mypy.dir/flags.make
+CMakeFiles/mypy.dir/print_ast.cpp.o: ../print_ast.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yuanli/zju_compiler/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/mypy.dir/print_ast.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/mypy.dir/print_ast.cpp.o -c /home/yuanli/zju_compiler/src/print_ast.cpp
+
+CMakeFiles/mypy.dir/print_ast.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/mypy.dir/print_ast.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yuanli/zju_compiler/src/print_ast.cpp > CMakeFiles/mypy.dir/print_ast.cpp.i
+
+CMakeFiles/mypy.dir/print_ast.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/mypy.dir/print_ast.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yuanli/zju_compiler/src/print_ast.cpp -o CMakeFiles/mypy.dir/print_ast.cpp.s
 
 CMakeFiles/mypy.dir/parser.y.cpp.o: CMakeFiles/mypy.dir/flags.make
 CMakeFiles/mypy.dir/parser.y.cpp.o: parser.y.cpp
@@ -137,18 +137,18 @@ CMakeFiles/mypy.dir/parser.y.cpp.s: cmake_force
 # Object files for target mypy
 mypy_OBJECTS = \
 "CMakeFiles/mypy.dir/main.cpp.o" \
-"CMakeFiles/mypy.dir/ast.cpp.o" \
 "CMakeFiles/mypy.dir/code_gen.cpp.o" \
 "CMakeFiles/mypy.dir/lex.l.cpp.o" \
+"CMakeFiles/mypy.dir/print_ast.cpp.o" \
 "CMakeFiles/mypy.dir/parser.y.cpp.o"
 
 # External object files for target mypy
 mypy_EXTERNAL_OBJECTS =
 
 mypy: CMakeFiles/mypy.dir/main.cpp.o
-mypy: CMakeFiles/mypy.dir/ast.cpp.o
 mypy: CMakeFiles/mypy.dir/code_gen.cpp.o
 mypy: CMakeFiles/mypy.dir/lex.l.cpp.o
+mypy: CMakeFiles/mypy.dir/print_ast.cpp.o
 mypy: CMakeFiles/mypy.dir/parser.y.cpp.o
 mypy: CMakeFiles/mypy.dir/build.make
 mypy: CMakeFiles/mypy.dir/link.txt

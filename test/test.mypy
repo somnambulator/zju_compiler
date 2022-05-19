@@ -1,39 +1,5 @@
-def foo(a:int, b:float)->void:{
-var
-stmt
-    print(a);
-    print(b);
-}
-
-def bar()->int:{
-var
-stmt
-    return 111+2;
-}
-
 def main()->int:{
 var    
-    a:int:=1;
-    b:int:=2;
-    c:float:=1.5;
 stmt
-    print(1);
-    print(1+1);
-    print(432.1);
-    a:=100;
-    a:=200;
-    a:=100+1;
-    a:=100--1;
-    c:=10;
-    print(c);
-    a:=100*2;
-    a:=100-50;
-    a:=(100-50)*30+1;
-    a:=b+1;
-    print(b);
-    c:=2.5;
-    print(c);
-    foo(a,c);
-    print(bar());
     return 0;
 }
