@@ -72,21 +72,22 @@ extern int yydebug;
     ID = 278,
     INT = 279,
     FLOAT = 280,
-    ASSIGNOP = 281,
-    OR = 282,
-    AND = 283,
-    RELOP = 284,
-    ADD = 285,
-    SUB = 286,
-    MUL = 287,
-    DIV = 288,
-    NOT = 289,
-    DOT = 290,
-    LB = 291,
-    RB = 292,
-    LP = 293,
-    RP = 294,
-    LOWER_THAN_ELSE = 295
+    STRING = 281,
+    ASSIGNOP = 282,
+    OR = 283,
+    AND = 284,
+    RELOP = 285,
+    ADD = 286,
+    SUB = 287,
+    MUL = 288,
+    DIV = 289,
+    NOT = 290,
+    DOT = 291,
+    LB = 292,
+    RB = 293,
+    LP = 294,
+    RP = 295,
+    LOWER_THAN_ELSE = 296
   };
 #endif
 
@@ -98,6 +99,8 @@ union YYSTYPE
 
     int int_val;
     float float_val;
+    char char_val;
+    std::string* string_val;
 
     std::string* name;
     std::string* op; 
@@ -113,7 +116,7 @@ union YYSTYPE
     DecExprAST* decexprAST;
     DecListAST* declistAST;
 
-#line 117 "parser.y.hpp"
+#line 120 "parser.y.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

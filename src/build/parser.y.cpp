@@ -160,21 +160,22 @@ extern int yydebug;
     ID = 278,
     INT = 279,
     FLOAT = 280,
-    ASSIGNOP = 281,
-    OR = 282,
-    AND = 283,
-    RELOP = 284,
-    ADD = 285,
-    SUB = 286,
-    MUL = 287,
-    DIV = 288,
-    NOT = 289,
-    DOT = 290,
-    LB = 291,
-    RB = 292,
-    LP = 293,
-    RP = 294,
-    LOWER_THAN_ELSE = 295
+    STRING = 281,
+    ASSIGNOP = 282,
+    OR = 283,
+    AND = 284,
+    RELOP = 285,
+    ADD = 286,
+    SUB = 287,
+    MUL = 288,
+    DIV = 289,
+    NOT = 290,
+    DOT = 291,
+    LB = 292,
+    RB = 293,
+    LP = 294,
+    RP = 295,
+    LOWER_THAN_ELSE = 296
   };
 #endif
 
@@ -186,6 +187,8 @@ union YYSTYPE
 
     int int_val;
     float float_val;
+    char char_val;
+    std::string* string_val;
 
     std::string* name;
     std::string* op; 
@@ -201,7 +204,7 @@ union YYSTYPE
     DecExprAST* decexprAST;
     DecListAST* declistAST;
 
-#line 205 "parser.y.cpp"
+#line 208 "parser.y.cpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -540,16 +543,16 @@ union yyalloc
 #define YYLAST   308
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  41
+#define YYNTOKENS  42
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  24
 /* YYNRULES -- Number of rules.  */
 #define YYNRULES  69
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  162
+#define YYNSTATES  161
 
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   295
+#define YYMAXUTOK   296
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -590,20 +593,20 @@ static const yytype_int8 yytranslate[] =
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37,    38,    39,    40
+      35,    36,    37,    38,    39,    40,    41
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    89,    89,    91,    92,    94,    96,    98,    99,   101,
-     102,   104,   105,   107,   108,   112,   125,   127,   129,   130,
-     133,   135,   138,   140,   141,   143,   146,   147,   148,   150,
-     151,   153,   154,   155,   156,   157,   158,   159,   160,   161,
-     163,   164,   165,   167,   168,   170,   171,   173,   175,   176,
-     178,   179,   184,   185,   186,   187,   188,   189,   190,   191,
-     192,   193,   194,   195,   196,   201,   202,   203,   205,   206
+       0,    92,    92,    94,    95,    97,    99,   101,   102,   104,
+     105,   107,   108,   110,   116,   129,   131,   133,   134,   137,
+     139,   142,   144,   145,   147,   150,   151,   152,   154,   155,
+     157,   158,   159,   160,   161,   162,   163,   164,   165,   167,
+     168,   169,   171,   172,   174,   175,   177,   179,   180,   182,
+     183,   188,   189,   190,   191,   192,   193,   194,   195,   196,
+     197,   198,   199,   200,   205,   206,   207,   208,   210,   211
 };
 #endif
 
@@ -615,11 +618,11 @@ static const char *const yytname[] =
   "$end", "error", "$undefined", "COLON", "COMMA", "LC", "RC", "FUNCSPEC",
   "SEMI", "STRUCT", "IF", "WHILE", "FOR", "TYPE", "ELSE", "ELIF", "IN",
   "RANGE", "DEF", "RETURN", "MAIN", "VAR", "STMT", "ID", "INT", "FLOAT",
-  "ASSIGNOP", "OR", "AND", "RELOP", "ADD", "SUB", "MUL", "DIV", "NOT",
-  "DOT", "LB", "RB", "LP", "RP", "LOWER_THAN_ELSE", "$accept", "Program",
-  "ExtDefList", "ExtDef", "MainDef", "ExtDecList", "ExtDec", "Specifier",
-  "VarDec", "FunDec", "MainFunDec", "VarList", "ParamDec", "CompSt",
-  "StmtList", "Stmt", "ELIFStmt", "ReturnStmt", "DefList", "Def",
+  "STRING", "ASSIGNOP", "OR", "AND", "RELOP", "ADD", "SUB", "MUL", "DIV",
+  "NOT", "DOT", "LB", "RB", "LP", "RP", "LOWER_THAN_ELSE", "$accept",
+  "Program", "ExtDefList", "ExtDef", "MainDef", "ExtDecList", "ExtDec",
+  "Specifier", "VarDec", "FunDec", "MainFunDec", "VarList", "ParamDec",
+  "CompSt", "StmtList", "Stmt", "ELIFStmt", "ReturnStmt", "DefList", "Def",
   "DecList", "Dec", "Exp", "Args", YY_NULLPTR
 };
 #endif
@@ -633,16 +636,16 @@ static const yytype_int16 yytoknum[] =
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
      275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
      285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
-     295
+     295,   296
 };
 # endif
 
-#define YYPACT_NINF (-80)
+#define YYPACT_NINF (-76)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-47)
+#define YYTABLE_NINF (-46)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -651,23 +654,23 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-      20,     2,    56,   -80,     9,   -80,    20,   -80,     7,     8,
-      16,   -80,   -80,    13,     4,    18,    43,    61,   -80,   -80,
-     -80,    54,    54,   -80,    30,     1,     3,     3,   -80,    78,
-      57,    81,    58,    86,    91,    73,    96,   108,    95,   -80,
-     -80,    21,    24,    54,    54,    54,   111,    21,   -80,    74,
-     -80,    85,   -80,   -80,    24,    24,    24,   147,   -80,   -80,
-     -80,    54,   -80,   116,   102,    74,   117,   122,   193,   -15,
-     -80,   207,    24,    24,    24,    24,    24,    24,    24,    24,
-     -80,    54,    79,   -80,   -80,    21,   -80,   156,    97,   -80,
-     147,   275,    99,    76,   -15,   -15,   -80,   -80,   112,    -1,
-     101,   105,    21,   -80,    -3,    79,   173,   -80,    24,   -80,
-      24,   -80,    24,    24,   121,   -80,   134,   139,   -80,   -80,
-     -80,   147,   221,   235,   129,   -80,   182,   -80,   137,   144,
-     125,   -80,   110,   110,    24,    36,   -80,   165,   158,   126,
-     -80,    24,   110,    24,   123,   -80,   249,    24,   163,   164,
-     263,   110,   110,   167,   -80,    45,   110,   168,   -80,   -80,
-     110,   -80
+      19,    -5,    20,   -76,     6,   -76,    19,   -76,     4,    12,
+      28,   -76,   -76,    11,    23,    52,    53,    55,   -76,   -76,
+     -76,    83,    83,   -76,    69,    15,    45,    45,   -76,   107,
+     -76,   105,    91,   106,   127,    93,   130,   125,   116,   -76,
+     -76,    43,    83,    83,    83,   131,    43,   -76,    38,   -76,
+     -76,   -76,   -76,    83,   -76,   143,   148,    38,   141,   167,
+     -76,    83,    58,   -76,   -76,    43,   146,    -1,   135,   136,
+      43,   147,   -76,   -76,   -76,   199,   199,   199,   -76,    -2,
+      58,   161,   -76,   199,   -76,   199,   199,   171,   181,    14,
+     -76,   212,   -76,   100,   202,   -76,   -76,   199,   199,   199,
+     199,   199,   199,   199,   199,   151,   226,   240,   192,   -76,
+     123,   170,   -76,   -76,   169,   -76,   151,   111,    72,    41,
+      14,    14,   -76,   -76,   208,   209,   175,   199,   -76,   -76,
+      75,    75,   199,   -76,    64,   -76,   132,   214,   176,   -76,
+     199,    75,   199,    88,   -76,   254,   199,   215,   216,   268,
+      75,    75,   223,   -76,    74,    75,   224,   -76,   -76,    75,
+     -76
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -675,39 +678,39 @@ static const yytype_int16 yypact[] =
      means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,    16,     0,     2,     0,     4,     0,    11,
-       0,     8,    17,     0,     0,     0,     0,     0,     1,     3,
-       6,     0,     0,    20,     0,     0,     0,     0,    15,     0,
-      13,     0,     0,     0,     0,     0,    24,     0,     0,     7,
-       9,     0,     0,     0,     0,     0,     0,     0,    28,     0,
-      12,    65,    66,    67,     0,     0,     0,    14,    21,    19,
-      25,     0,    23,     0,     0,     0,     0,    48,     0,    61,
-      62,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-      18,     0,     0,    45,    47,     0,    64,    69,     0,    60,
-      52,    54,    53,    55,    56,    57,    58,    59,    50,     0,
-       0,     0,     0,    32,     0,     0,     0,    49,     0,    63,
-       0,    39,     0,     0,     0,    26,     0,     0,    29,    31,
-      68,    51,     0,     0,     0,    44,     0,    27,     0,     0,
-       0,    43,     0,     0,     0,    33,    36,     0,     0,     0,
-      34,     0,     0,     0,     0,    35,     0,     0,     0,     0,
-       0,     0,     0,     0,    38,    41,     0,     0,    40,    37,
-       0,    42
+       0,     0,     0,    15,     0,     2,     0,     4,     0,    11,
+       0,     8,    16,     0,     0,     0,     0,     0,     1,     3,
+       6,     0,     0,    19,     0,     0,     0,     0,    14,     0,
+      13,     0,     0,     0,     0,     0,    23,     0,     0,     7,
+       9,     0,     0,     0,     0,     0,     0,    27,     0,    12,
+      20,    18,    24,     0,    22,     0,     0,     0,     0,    47,
+      17,     0,     0,    44,    46,     0,    49,     0,     0,     0,
+       0,    64,    65,    66,    67,     0,     0,     0,    31,     0,
+       0,     0,    48,     0,    38,     0,     0,     0,     0,    60,
+      61,     0,    25,     0,     0,    28,    30,     0,     0,     0,
+       0,     0,     0,     0,     0,    50,     0,     0,     0,    63,
+      69,     0,    59,    43,     0,    26,    51,    53,    52,    54,
+      55,    56,    57,    58,     0,     0,     0,     0,    62,    42,
+       0,     0,     0,    68,    32,    35,     0,     0,     0,    33,
+       0,     0,     0,     0,    34,     0,     0,     0,     0,     0,
+       0,     0,     0,    37,    40,     0,     0,    39,    36,     0,
+      41
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-     -80,   -80,   201,   -80,   -80,   178,   -80,   -16,   -24,   -80,
-     -80,   174,   -80,    60,   115,   -79,    67,   -80,   160,   -80,
-     138,   -80,   -42,   118
+     -76,   -76,   222,   -76,   -76,   188,   -76,    -8,   -16,   -76,
+     -76,   184,   -76,    68,   152,    17,    79,   -76,   178,   -76,
+     172,   -76,   -75,   109
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int16 yydefgoto[] =
 {
       -1,     4,     5,     6,     7,     8,     9,    29,    10,    16,
-      17,    35,    36,   103,   104,   105,   140,   117,    64,    65,
-      66,    67,   106,    88
+      17,    35,    36,    78,    79,    80,   139,    94,    56,    57,
+      58,    59,    81,   111
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -715,119 +718,119 @@ static const yytype_int16 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
-      57,    34,    32,   115,    37,    48,    30,   111,    38,    18,
-      11,    21,    69,    70,    71,    20,   116,    78,    79,    22,
-      -5,     1,    32,    34,     3,    63,    87,    58,    59,    60,
-      90,    91,    92,    93,    94,    95,    96,    97,     2,    12,
-      33,    63,    24,     3,     3,    80,    26,    51,    52,    53,
-     138,   139,    23,   135,   136,    54,    25,    13,    55,   157,
-     139,    63,    56,   145,    27,    98,    87,    28,   121,    31,
-     122,   123,   154,   155,   126,    32,    14,   159,   114,    15,
-      99,   161,    41,    42,    38,   -30,    39,    40,    43,   100,
-     101,   102,   137,    44,    45,    12,   -46,     3,   -30,   144,
-      47,   146,    51,    52,    53,   150,    76,    77,    78,    79,
-      54,    99,    46,    55,    48,    38,    49,    56,    61,    81,
-     100,   101,   102,    68,    82,    84,    85,   147,    75,    76,
-      77,    78,    79,    51,    52,    53,   109,   124,   110,   112,
-     132,    54,   125,   113,    55,   127,   130,   133,    56,    72,
-      73,    74,    75,    76,    77,    78,    79,    51,    52,    53,
-     108,   142,   148,   134,   143,    54,   151,   152,    55,   141,
-     156,   160,    56,    72,    73,    74,    75,    76,    77,    78,
-      79,   119,    72,    73,    74,    75,    76,    77,    78,    79,
-     131,    72,    73,    74,    75,    76,    77,    78,    79,    72,
-      73,    74,    75,    76,    77,    78,    79,    19,    72,    73,
-      74,    75,    76,    77,    78,    79,    51,    52,    53,    50,
-     118,    62,   158,   107,    54,    83,   120,    55,     0,     0,
-       0,    56,    86,    72,    73,    74,    75,    76,    77,    78,
-      79,     0,     0,     0,     0,     0,    89,    72,    73,    74,
-      75,    76,    77,    78,    79,     0,     0,     0,     0,     0,
-     128,    72,    73,    74,    75,    76,    77,    78,    79,     0,
-       0,     0,     0,     0,   129,    72,    73,    74,    75,    76,
-      77,    78,    79,     0,     0,     0,     0,     0,   149,    72,
-      73,    74,    75,    76,    77,    78,    79,     0,     0,     0,
-       0,     0,   153,    74,    75,    76,    77,    78,    79
+      89,    90,    91,    11,    92,    47,    18,    84,   105,    34,
+     106,   107,    20,   110,    30,    21,    32,    93,   114,    -5,
+       1,    13,   116,   117,   118,   119,   120,   121,   122,   123,
+      34,    22,    55,    12,    50,    51,    52,     2,     3,    32,
+      14,    55,     3,    15,    32,    60,    37,   103,   104,    55,
+      38,    23,   110,    66,    87,    33,    26,   136,    27,    67,
+     -45,     3,    24,    38,   -29,   143,     3,   145,    68,    69,
+      70,   149,   101,   102,   103,   104,    67,   -29,   137,   138,
+      38,    71,    72,    73,    74,    68,    69,    70,   156,   138,
+      75,    25,   146,    76,    39,    40,    28,    77,    71,    72,
+      73,    74,   100,   101,   102,   103,   104,    75,   113,    31,
+      76,    41,    42,    43,    77,    97,    98,    99,   100,   101,
+     102,   103,   104,    71,    72,    73,    74,   127,   147,    12,
+      44,    47,    75,    45,    46,    76,   140,    48,    53,    77,
+      99,   100,   101,   102,   103,   104,    61,   134,   135,    64,
+      97,    98,    99,   100,   101,   102,   103,   104,   144,    97,
+      98,    99,   100,   101,   102,   103,   104,   153,   154,    96,
+      62,    65,   158,    83,    85,    86,   160,   129,    97,    98,
+      99,   100,   101,   102,   103,   104,    88,   108,    97,    98,
+      99,   100,   101,   102,   103,   104,    97,    98,    99,   100,
+     101,   102,   103,   104,    71,    72,    73,    74,   115,   126,
+     128,   130,   131,    75,   132,   142,    76,   141,   150,   151,
+      77,   109,    71,    72,    73,    74,   155,   159,    19,    49,
+      54,    75,    95,   157,    76,    63,   133,    82,    77,    97,
+      98,    99,   100,   101,   102,   103,   104,     0,     0,     0,
+       0,     0,   112,    97,    98,    99,   100,   101,   102,   103,
+     104,     0,     0,     0,     0,     0,   124,    97,    98,    99,
+     100,   101,   102,   103,   104,     0,     0,     0,     0,     0,
+     125,    97,    98,    99,   100,   101,   102,   103,   104,     0,
+       0,     0,     0,     0,   148,    97,    98,    99,   100,   101,
+     102,   103,   104,     0,     0,     0,     0,     0,   152
 };
 
 static const yytype_int16 yycheck[] =
 {
-      42,    25,     1,     6,     1,     6,    22,     8,     5,     0,
-       8,     3,    54,    55,    56,     8,    19,    32,    33,     3,
-       0,     1,     1,    47,    23,    49,    68,    43,    44,    45,
-      72,    73,    74,    75,    76,    77,    78,    79,    18,    37,
-      39,    65,    38,    23,    23,    61,     3,    23,    24,    25,
-      14,    15,    39,   132,   133,    31,    38,     1,    34,    14,
-      15,    85,    38,   142,     3,    81,   108,    13,   110,    39,
-     112,   113,   151,   152,   116,     1,    20,   156,   102,    23,
-       1,   160,     4,    26,     5,     6,    26,    27,     7,    10,
-      11,    12,   134,     7,     3,    37,    22,    23,    19,   141,
-       4,   143,    23,    24,    25,   147,    30,    31,    32,    33,
-      31,     1,    39,    34,     6,     5,    21,    38,     7,     3,
-      10,    11,    12,    38,    22,     8,     4,     4,    29,    30,
-      31,    32,    33,    23,    24,    25,    39,    16,    26,    38,
-       3,    31,     8,    38,    34,     6,    17,     3,    38,    26,
-      27,    28,    29,    30,    31,    32,    33,    23,    24,    25,
-       4,     3,    39,    38,    38,    31,     3,     3,    34,     4,
-       3,     3,    38,    26,    27,    28,    29,    30,    31,    32,
-      33,     8,    26,    27,    28,    29,    30,    31,    32,    33,
-       8,    26,    27,    28,    29,    30,    31,    32,    33,    26,
-      27,    28,    29,    30,    31,    32,    33,     6,    26,    27,
-      28,    29,    30,    31,    32,    33,    23,    24,    25,    41,
-     105,    47,   155,    85,    31,    65,   108,    34,    -1,    -1,
-      -1,    38,    39,    26,    27,    28,    29,    30,    31,    32,
-      33,    -1,    -1,    -1,    -1,    -1,    39,    26,    27,    28,
-      29,    30,    31,    32,    33,    -1,    -1,    -1,    -1,    -1,
-      39,    26,    27,    28,    29,    30,    31,    32,    33,    -1,
-      -1,    -1,    -1,    -1,    39,    26,    27,    28,    29,    30,
-      31,    32,    33,    -1,    -1,    -1,    -1,    -1,    39,    26,
-      27,    28,    29,    30,    31,    32,    33,    -1,    -1,    -1,
-      -1,    -1,    39,    28,    29,    30,    31,    32,    33
+      75,    76,    77,     8,     6,     6,     0,     8,    83,    25,
+      85,    86,     8,    88,    22,     3,     1,    19,    93,     0,
+       1,     1,    97,    98,    99,   100,   101,   102,   103,   104,
+      46,     3,    48,    38,    42,    43,    44,    18,    23,     1,
+      20,    57,    23,    23,     1,    53,     1,    33,    34,    65,
+       5,    40,   127,    61,    70,    40,     3,   132,     3,     1,
+      22,    23,    39,     5,     6,   140,    23,   142,    10,    11,
+      12,   146,    31,    32,    33,    34,     1,    19,    14,    15,
+       5,    23,    24,    25,    26,    10,    11,    12,    14,    15,
+      32,    39,     4,    35,    26,    27,    13,    39,    23,    24,
+      25,    26,    30,    31,    32,    33,    34,    32,     8,    40,
+      35,     4,     7,     7,    39,    27,    28,    29,    30,    31,
+      32,    33,    34,    23,    24,    25,    26,     4,    40,    38,
+       3,     6,    32,    40,     4,    35,     4,    21,     7,    39,
+      29,    30,    31,    32,    33,    34,     3,   130,   131,     8,
+      27,    28,    29,    30,    31,    32,    33,    34,   141,    27,
+      28,    29,    30,    31,    32,    33,    34,   150,   151,     8,
+      22,     4,   155,    27,    39,    39,   159,     8,    27,    28,
+      29,    30,    31,    32,    33,    34,    39,    16,    27,    28,
+      29,    30,    31,    32,    33,    34,    27,    28,    29,    30,
+      31,    32,    33,    34,    23,    24,    25,    26,     6,    17,
+      40,     3,     3,    32,    39,    39,    35,     3,     3,     3,
+      39,    40,    23,    24,    25,    26,     3,     3,     6,    41,
+      46,    32,    80,   154,    35,    57,   127,    65,    39,    27,
+      28,    29,    30,    31,    32,    33,    34,    -1,    -1,    -1,
+      -1,    -1,    40,    27,    28,    29,    30,    31,    32,    33,
+      34,    -1,    -1,    -1,    -1,    -1,    40,    27,    28,    29,
+      30,    31,    32,    33,    34,    -1,    -1,    -1,    -1,    -1,
+      40,    27,    28,    29,    30,    31,    32,    33,    34,    -1,
+      -1,    -1,    -1,    -1,    40,    27,    28,    29,    30,    31,
+      32,    33,    34,    -1,    -1,    -1,    -1,    -1,    40
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     1,    18,    23,    42,    43,    44,    45,    46,    47,
-      49,     8,    37,     1,    20,    23,    50,    51,     0,    43,
-       8,     3,     3,    39,    38,    38,     3,     3,    13,    48,
-      48,    39,     1,    39,    49,    52,    53,     1,     5,    54,
-      54,     4,    26,     7,     7,     3,    39,     4,     6,    21,
-      46,    23,    24,    25,    31,    34,    38,    63,    48,    48,
-      48,     7,    52,    49,    59,    60,    61,    62,    38,    63,
-      63,    63,    26,    27,    28,    29,    30,    31,    32,    33,
-      48,     3,    22,    59,     8,     4,    39,    63,    64,    39,
-      63,    63,    63,    63,    63,    63,    63,    63,    48,     1,
-      10,    11,    12,    54,    55,    56,    63,    61,     4,    39,
-      26,     8,    38,    38,    49,     6,    19,    58,    55,     8,
-      64,    63,    63,    63,    16,     8,    63,     6,    39,    39,
-      17,     8,     3,     3,    38,    56,    56,    63,    14,    15,
-      57,     4,     3,    38,    63,    56,    63,     4,    39,    39,
-      63,     3,     3,    39,    56,    56,     3,    14,    57,    56,
-       3,    56
+       0,     1,    18,    23,    43,    44,    45,    46,    47,    48,
+      50,     8,    38,     1,    20,    23,    51,    52,     0,    44,
+       8,     3,     3,    40,    39,    39,     3,     3,    13,    49,
+      49,    40,     1,    40,    50,    53,    54,     1,     5,    55,
+      55,     4,     7,     7,     3,    40,     4,     6,    21,    47,
+      49,    49,    49,     7,    53,    50,    60,    61,    62,    63,
+      49,     3,    22,    60,     8,     4,    49,     1,    10,    11,
+      12,    23,    24,    25,    26,    32,    35,    39,    55,    56,
+      57,    64,    62,    27,     8,    39,    39,    50,    39,    64,
+      64,    64,     6,    19,    59,    56,     8,    27,    28,    29,
+      30,    31,    32,    33,    34,    64,    64,    64,    16,    40,
+      64,    65,    40,     8,    64,     6,    64,    64,    64,    64,
+      64,    64,    64,    64,    40,    40,    17,     4,    40,     8,
+       3,     3,    39,    65,    57,    57,    64,    14,    15,    58,
+       4,     3,    39,    64,    57,    64,     4,    40,    40,    64,
+       3,     3,    40,    57,    57,     3,    14,    58,    57,     3,
+      57
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    41,    42,    43,    43,    43,    44,    44,    44,    45,
-      45,    46,    46,    47,    47,    48,    49,    49,    50,    50,
-      50,    51,    51,    52,    52,    53,    54,    54,    54,    55,
-      55,    56,    56,    56,    56,    56,    56,    56,    56,    56,
-      57,    57,    57,    58,    58,    59,    59,    60,    61,    61,
-      62,    62,    63,    63,    63,    63,    63,    63,    63,    63,
-      63,    63,    63,    63,    63,    63,    63,    63,    64,    64
+       0,    42,    43,    44,    44,    44,    45,    45,    45,    46,
+      46,    47,    47,    48,    49,    50,    50,    51,    51,    51,
+      52,    52,    53,    53,    54,    55,    55,    55,    56,    56,
+      57,    57,    57,    57,    57,    57,    57,    57,    57,    58,
+      58,    58,    59,    59,    60,    60,    61,    62,    62,    63,
+      63,    64,    64,    64,    64,    64,    64,    64,    64,    64,
+      64,    64,    64,    64,    64,    64,    64,    64,    65,    65
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     1,     2,     1,     0,     2,     4,     2,     4,
-       2,     1,     5,     3,     5,     1,     1,     2,     6,     5,
-       2,     5,     2,     3,     1,     3,     6,     7,     2,     2,
-       0,     2,     1,     6,     7,     9,     6,    13,    11,     2,
-       7,     6,     9,     3,     2,     2,     0,     2,     1,     3,
-       3,     5,     3,     3,     3,     3,     3,     3,     3,     3,
-       3,     2,     2,     4,     3,     1,     1,     1,     3,     1
+       2,     1,     5,     3,     1,     1,     2,     6,     5,     2,
+       5,     2,     3,     1,     3,     6,     7,     2,     2,     0,
+       2,     1,     6,     7,     9,     6,    13,    11,     2,     7,
+       6,     9,     3,     2,     2,     0,     2,     1,     3,     3,
+       5,     3,     3,     3,     3,     3,     3,     3,     3,     3,
+       2,     2,     4,     3,     1,     1,     1,     1,     3,     1
 };
 
 
@@ -1618,426 +1621,424 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 89 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 92 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { Program = new ProgramAST(std::move(*(yyvsp[0].AST_list))); }
-#line 1624 "parser.y.cpp"
+#line 1627 "parser.y.cpp"
     break;
 
   case 3:
-#line 91 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 94 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-1].exprAST))); }
-#line 1630 "parser.y.cpp"
+#line 1633 "parser.y.cpp"
     break;
 
   case 4:
-#line 92 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 95 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = new ast_list();
                                                               (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[0].functionAST))); }
-#line 1637 "parser.y.cpp"
+#line 1640 "parser.y.cpp"
     break;
 
   case 5:
-#line 94 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 97 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = new ast_list(); }
-#line 1643 "parser.y.cpp"
+#line 1646 "parser.y.cpp"
     break;
 
   case 6:
-#line 96 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 99 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new GlobalDecListAST(std::move(*(yyvsp[-1].AST_list))); (yyval.exprAST)->setLineno(yylineno); }
-#line 1649 "parser.y.cpp"
+#line 1652 "parser.y.cpp"
     break;
 
   case 7:
-#line 98 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 101 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new FunctionAST((yyvsp[-2].prototypeAST), (yyvsp[0].bodyAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1655 "parser.y.cpp"
+#line 1658 "parser.y.cpp"
     break;
 
   case 8:
-#line 99 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 102 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { printf("[Parser]Error in ExtDef\n"); }
-#line 1661 "parser.y.cpp"
+#line 1664 "parser.y.cpp"
     break;
 
   case 9:
-#line 101 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 104 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.functionAST) = new FunctionAST((yyvsp[-2].prototypeAST), (yyvsp[0].bodyAST)); (yyval.functionAST)->setLineno(yylineno); }
-#line 1667 "parser.y.cpp"
+#line 1670 "parser.y.cpp"
     break;
 
   case 10:
-#line 102 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 105 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { printf("[Parser]Error in MainDef\n"); }
-#line 1673 "parser.y.cpp"
+#line 1676 "parser.y.cpp"
     break;
 
   case 11:
-#line 104 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 107 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = new ast_list(); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[0].exprAST))); }
-#line 1679 "parser.y.cpp"
+#line 1682 "parser.y.cpp"
     break;
 
   case 12:
-#line 105 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 108 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-4].exprAST))); }
-#line 1685 "parser.y.cpp"
+#line 1688 "parser.y.cpp"
     break;
 
   case 13:
-#line 107 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 110 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new DecExprAST((yyvsp[-2].variableexprAST), (yyvsp[0].typeAST), 1); (yyval.exprAST)->setLineno(yylineno); }
-#line 1691 "parser.y.cpp"
+#line 1694 "parser.y.cpp"
     break;
 
   case 14:
-#line 108 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { DecExprAST* var;
-                                                              var = new DecExprAST((yyvsp[-4].variableexprAST), (yyvsp[-2].typeAST), 1);
-                                                              (yyval.exprAST) = new AssignExprAST(var, (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1699 "parser.y.cpp"
+#line 116 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.typeAST) = new TypeAST(*(yyvsp[0].Str)); (yyval.typeAST)->setLineno(yylineno); }
+#line 1700 "parser.y.cpp"
     break;
 
   case 15:
-#line 112 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.typeAST) = new TypeAST(*(yyvsp[0].Str)); (yyval.typeAST)->setLineno(yylineno); }
-#line 1705 "parser.y.cpp"
+#line 129 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.variableexprAST) = new VariableExprAST(*(yyvsp[0].name)); (yyval.variableexprAST)->setLineno(yylineno); }
+#line 1706 "parser.y.cpp"
     break;
 
   case 16:
-#line 125 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.variableexprAST) = new VariableExprAST(*(yyvsp[0].name)); (yyval.variableexprAST)->setLineno(yylineno); }
-#line 1711 "parser.y.cpp"
+#line 131 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { printf("[Parser]Error in VerDec\n"); }
+#line 1712 "parser.y.cpp"
     break;
 
   case 17:
-#line 127 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { printf("[Parser]Error in VerDec\n"); }
-#line 1717 "parser.y.cpp"
+#line 133 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.prototypeAST) = new PrototypeAST((yyvsp[0].typeAST), *(yyvsp[-5].name), std::move(*(yyvsp[-3].AST_list))); (yyval.prototypeAST)->setLineno(yylineno); }
+#line 1718 "parser.y.cpp"
     break;
 
   case 18:
-#line 129 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.prototypeAST) = new PrototypeAST((yyvsp[0].typeAST), *(yyvsp[-5].name), std::move(*(yyvsp[-3].AST_list))); (yyval.prototypeAST)->setLineno(yylineno); }
-#line 1723 "parser.y.cpp"
-    break;
-
-  case 19:
-#line 130 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 134 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { ast_list* void_args; 
                                                               void_args = new ast_list(); 
                                                               (yyval.prototypeAST) = new PrototypeAST((yyvsp[0].typeAST), *(yyvsp[-4].name), std::move(*void_args)); (yyval.prototypeAST)->setLineno(yylineno); }
-#line 1731 "parser.y.cpp"
+#line 1726 "parser.y.cpp"
+    break;
+
+  case 19:
+#line 137 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { printf("[Parser]Error in FunDec\n"); }
+#line 1732 "parser.y.cpp"
     break;
 
   case 20:
-#line 133 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { printf("[Parser]Error in FunDec\n"); }
-#line 1737 "parser.y.cpp"
-    break;
-
-  case 21:
-#line 135 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 139 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { ast_list* void_args; 
                                                               void_args = new ast_list(); 
                                                               (yyval.prototypeAST) = new PrototypeAST((yyvsp[0].typeAST), std::string("main"), std::move(*void_args)); (yyval.prototypeAST)->setLineno(yylineno); }
-#line 1745 "parser.y.cpp"
+#line 1740 "parser.y.cpp"
+    break;
+
+  case 21:
+#line 142 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { printf("[Parser]Error in MainFunDec\n"); }
+#line 1746 "parser.y.cpp"
     break;
 
   case 22:
-#line 138 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { printf("[Parser]Error in MainFunDec\n"); }
-#line 1751 "parser.y.cpp"
+#line 144 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-2].decexprAST))); }
+#line 1752 "parser.y.cpp"
     break;
 
   case 23:
-#line 140 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-2].decexprAST))); }
-#line 1757 "parser.y.cpp"
+#line 145 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.AST_list) = new ast_list(); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[0].decexprAST))); }
+#line 1758 "parser.y.cpp"
     break;
 
   case 24:
-#line 141 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.AST_list) = new ast_list(); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[0].decexprAST))); }
-#line 1763 "parser.y.cpp"
+#line 147 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.decexprAST) = new DecExprAST((yyvsp[-2].variableexprAST), (yyvsp[0].typeAST), 0); (yyval.decexprAST)->setLineno(yylineno); }
+#line 1764 "parser.y.cpp"
     break;
 
   case 25:
-#line 143 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.decexprAST) = new DecExprAST((yyvsp[-2].variableexprAST), (yyvsp[0].typeAST), 0); (yyval.decexprAST)->setLineno(yylineno); }
-#line 1769 "parser.y.cpp"
+#line 150 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.bodyAST) = new BodyAST(std::move(*(yyvsp[-3].AST_list)), std::move(*(yyvsp[-1].AST_list))); (yyval.bodyAST)->setLineno(yylineno); }
+#line 1770 "parser.y.cpp"
     break;
 
   case 26:
-#line 146 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.bodyAST) = new BodyAST(std::move(*(yyvsp[-3].AST_list)), std::move(*(yyvsp[-1].AST_list))); (yyval.bodyAST)->setLineno(yylineno); }
-#line 1775 "parser.y.cpp"
+#line 151 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                               { (yyval.bodyAST) = new BodyAST(std::move(*(yyvsp[-4].AST_list)), std::move(*(yyvsp[-2].AST_list)), (yyvsp[-1].exprAST)); (yyval.bodyAST)->setLineno(yylineno); }
+#line 1776 "parser.y.cpp"
     break;
 
   case 27:
-#line 147 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                               { (yyval.bodyAST) = new BodyAST(std::move(*(yyvsp[-4].AST_list)), std::move(*(yyvsp[-2].AST_list)), (yyvsp[-1].exprAST)); (yyval.bodyAST)->setLineno(yylineno); }
-#line 1781 "parser.y.cpp"
+#line 152 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { printf("[Parser]Error in CompSt\n"); }
+#line 1782 "parser.y.cpp"
     break;
 
   case 28:
-#line 148 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { printf("[Parser]Error in CompSt\n"); }
-#line 1787 "parser.y.cpp"
+#line 154 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-1].exprAST))); }
+#line 1788 "parser.y.cpp"
     break;
 
   case 29:
-#line 150 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-1].exprAST))); }
-#line 1793 "parser.y.cpp"
+#line 155 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.AST_list) = new ast_list(); }
+#line 1794 "parser.y.cpp"
     break;
 
   case 30:
-#line 151 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.AST_list) = new ast_list(); }
-#line 1799 "parser.y.cpp"
+#line 157 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = (yyvsp[-1].exprAST); (yyval.exprAST)->setLineno(yylineno); }
+#line 1800 "parser.y.cpp"
     break;
 
   case 31:
-#line 153 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = (yyvsp[-1].exprAST); (yyval.exprAST)->setLineno(yylineno); }
-#line 1805 "parser.y.cpp"
+#line 158 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = (yyvsp[0].bodyAST); (yyval.exprAST)->setLineno(yylineno); }
+#line 1806 "parser.y.cpp"
     break;
 
   case 32:
-#line 154 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = (yyvsp[0].bodyAST); (yyval.exprAST)->setLineno(yylineno); }
-#line 1811 "parser.y.cpp"
+#line 159 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                                                { (yyval.exprAST) = new IfExprAST((yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1812 "parser.y.cpp"
     break;
 
   case 33:
-#line 155 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                                                { (yyval.exprAST) = new IfExprAST((yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1817 "parser.y.cpp"
+#line 160 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                                                { (yyval.exprAST) = new IfExprAST((yyvsp[-4].exprAST), (yyvsp[-1].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1818 "parser.y.cpp"
     break;
 
   case 34:
-#line 156 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                                                { (yyval.exprAST) = new IfExprAST((yyvsp[-4].exprAST), (yyvsp[-1].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1823 "parser.y.cpp"
+#line 161 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                                                { (yyval.exprAST) = new IfExprAST((yyvsp[-6].exprAST), (yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1824 "parser.y.cpp"
     break;
 
   case 35:
-#line 157 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                                                { (yyval.exprAST) = new IfExprAST((yyvsp[-6].exprAST), (yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1829 "parser.y.cpp"
+#line 162 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                                                    { (yyval.exprAST) = new WhileExprAST((yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1830 "parser.y.cpp"
     break;
 
   case 36:
-#line 158 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                                                    { (yyval.exprAST) = new WhileExprAST((yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1835 "parser.y.cpp"
+#line 163 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                                                    { (yyval.exprAST) = new ForExprAST((yyvsp[-11].variableexprAST), (yyvsp[-7].exprAST), (yyvsp[-5].exprAST), (yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1836 "parser.y.cpp"
     break;
 
   case 37:
-#line 159 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                                                    { (yyval.exprAST) = new ForExprAST((yyvsp[-11].variableexprAST), (yyvsp[-7].exprAST), (yyvsp[-5].exprAST), (yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1841 "parser.y.cpp"
+#line 164 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                                                    { (yyval.exprAST) = new ForExprAST((yyvsp[-9].variableexprAST), (yyvsp[-5].exprAST), (yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1842 "parser.y.cpp"
     break;
 
   case 38:
-#line 160 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                                                    { (yyval.exprAST) = new ForExprAST((yyvsp[-9].variableexprAST), (yyvsp[-5].exprAST), (yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1847 "parser.y.cpp"
+#line 165 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { printf("[Parser]Error in Stmt\n"); }
+#line 1848 "parser.y.cpp"
     break;
 
   case 39:
-#line 161 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { printf("[Parser]Error in Stmt\n"); }
-#line 1853 "parser.y.cpp"
+#line 167 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                                             { (yyval.exprAST) = new IfExprAST((yyvsp[-4].exprAST), (yyvsp[-1].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1854 "parser.y.cpp"
     break;
 
   case 40:
-#line 163 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                                             { (yyval.exprAST) = new IfExprAST((yyvsp[-4].exprAST), (yyvsp[-1].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1859 "parser.y.cpp"
+#line 168 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                                    { (yyval.exprAST) = new IfExprAST((yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1860 "parser.y.cpp"
     break;
 
   case 41:
-#line 164 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                                    { (yyval.exprAST) = new IfExprAST((yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1865 "parser.y.cpp"
+#line 169 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                              { (yyval.exprAST) = new IfExprAST((yyvsp[-6].exprAST), (yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1866 "parser.y.cpp"
     break;
 
   case 42:
-#line 165 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                              { (yyval.exprAST) = new IfExprAST((yyvsp[-6].exprAST), (yyvsp[-3].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1871 "parser.y.cpp"
+#line 171 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = (yyvsp[-1].exprAST); (yyval.exprAST)->setLineno(yylineno); }
+#line 1872 "parser.y.cpp"
     break;
 
   case 43:
-#line 167 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = (yyvsp[-1].exprAST); (yyval.exprAST)->setLineno(yylineno); }
-#line 1877 "parser.y.cpp"
+#line 172 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = new VoidExprAST(); (yyval.exprAST)->setLineno(yylineno); }
+#line 1878 "parser.y.cpp"
     break;
 
   case 44:
-#line 168 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = new VoidExprAST(); (yyval.exprAST)->setLineno(yylineno); }
-#line 1883 "parser.y.cpp"
+#line 174 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-1].declistAST))); }
+#line 1884 "parser.y.cpp"
     break;
 
   case 45:
-#line 170 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-1].declistAST))); }
-#line 1889 "parser.y.cpp"
+#line 175 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.AST_list) = new ast_list(); }
+#line 1890 "parser.y.cpp"
     break;
 
   case 46:
-#line 171 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.AST_list) = new ast_list(); }
-#line 1895 "parser.y.cpp"
+#line 177 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.declistAST) = new DecListAST(std::move(*(yyvsp[-1].AST_list))); (yyval.declistAST)->setLineno(yylineno); }
+#line 1896 "parser.y.cpp"
     break;
 
   case 47:
-#line 173 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.declistAST) = new DecListAST(std::move(*(yyvsp[-1].AST_list))); (yyval.declistAST)->setLineno(yylineno); }
-#line 1901 "parser.y.cpp"
+#line 179 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.AST_list) = new ast_list(); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[0].exprAST))); }
+#line 1902 "parser.y.cpp"
     break;
 
   case 48:
-#line 175 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.AST_list) = new ast_list(); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[0].exprAST))); }
-#line 1907 "parser.y.cpp"
+#line 180 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-2].exprAST))); }
+#line 1908 "parser.y.cpp"
     break;
 
   case 49:
-#line 176 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-2].exprAST))); }
-#line 1913 "parser.y.cpp"
+#line 182 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = new DecExprAST((yyvsp[-2].variableexprAST), (yyvsp[0].typeAST), 0); (yyval.exprAST)->setLineno(yylineno); }
+#line 1914 "parser.y.cpp"
     break;
 
   case 50:
-#line 178 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = new DecExprAST((yyvsp[-2].variableexprAST), (yyvsp[0].typeAST), 0); (yyval.exprAST)->setLineno(yylineno); }
-#line 1919 "parser.y.cpp"
-    break;
-
-  case 51:
-#line 179 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 183 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { DecExprAST* var;
                                                               var = new DecExprAST((yyvsp[-4].variableexprAST), (yyvsp[-2].typeAST), 0); 
                                                               (yyval.exprAST) = new AssignExprAST(var, (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1927 "parser.y.cpp"
+#line 1922 "parser.y.cpp"
+    break;
+
+  case 51:
+#line 188 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = new AssignExprAST((yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1928 "parser.y.cpp"
     break;
 
   case 52:
-#line 184 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = new AssignExprAST((yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1933 "parser.y.cpp"
+#line 189 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1934 "parser.y.cpp"
     break;
 
   case 53:
-#line 185 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 190 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1939 "parser.y.cpp"
+#line 1940 "parser.y.cpp"
     break;
 
   case 54:
-#line 186 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 191 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1945 "parser.y.cpp"
+#line 1946 "parser.y.cpp"
     break;
 
   case 55:
-#line 187 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 192 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1951 "parser.y.cpp"
+#line 1952 "parser.y.cpp"
     break;
 
   case 56:
-#line 188 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 193 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1957 "parser.y.cpp"
+#line 1958 "parser.y.cpp"
     break;
 
   case 57:
-#line 189 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 194 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1963 "parser.y.cpp"
+#line 1964 "parser.y.cpp"
     break;
 
   case 58:
-#line 190 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 195 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1969 "parser.y.cpp"
+#line 1970 "parser.y.cpp"
     break;
 
   case 59:
-#line 191 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1975 "parser.y.cpp"
+#line 196 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = (yyvsp[-1].exprAST); (yyval.exprAST)->setLineno(yylineno); }
+#line 1976 "parser.y.cpp"
     break;
 
   case 60:
-#line 192 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = (yyvsp[-1].exprAST); (yyval.exprAST)->setLineno(yylineno); }
-#line 1981 "parser.y.cpp"
+#line 197 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), new IntExprAST(0), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1982 "parser.y.cpp"
     break;
 
   case 61:
-#line 193 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), new IntExprAST(0), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1987 "parser.y.cpp"
+#line 198 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), new VoidExprAST(), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
+#line 1988 "parser.y.cpp"
     break;
 
   case 62:
-#line 194 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), new VoidExprAST(), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
-#line 1993 "parser.y.cpp"
+#line 199 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = new CallExprAST(*(yyvsp[-3].name), std::move(*(yyvsp[-1].AST_list))); (yyval.exprAST)->setLineno(yylineno); }
+#line 1994 "parser.y.cpp"
     break;
 
   case 63:
-#line 195 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = new CallExprAST(*(yyvsp[-3].name), std::move(*(yyvsp[-1].AST_list))); (yyval.exprAST)->setLineno(yylineno); }
-#line 1999 "parser.y.cpp"
-    break;
-
-  case 64:
-#line 196 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 200 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { ast_list* void_args; 
                                                               void_args = new ast_list();  
                                                               (yyval.exprAST) = new CallExprAST(*(yyvsp[-2].name), std::move(*void_args)); (yyval.exprAST)->setLineno(yylineno); }
-#line 2007 "parser.y.cpp"
+#line 2002 "parser.y.cpp"
+    break;
+
+  case 64:
+#line 205 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = new VariableExprAST(*(yyvsp[0].name)); (yyval.exprAST)->setLineno(yylineno); }
+#line 2008 "parser.y.cpp"
     break;
 
   case 65:
-#line 201 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = new VariableExprAST(*(yyvsp[0].name)); (yyval.exprAST)->setLineno(yylineno); }
-#line 2013 "parser.y.cpp"
+#line 206 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = new IntExprAST((yyvsp[0].int_val)); (yyval.exprAST)->setLineno(yylineno); }
+#line 2014 "parser.y.cpp"
     break;
 
   case 66:
-#line 202 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = new IntExprAST((yyvsp[0].int_val)); (yyval.exprAST)->setLineno(yylineno); }
-#line 2019 "parser.y.cpp"
+#line 207 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = new FloatExprAST((yyvsp[0].float_val)); (yyval.exprAST)->setLineno(yylineno); }
+#line 2020 "parser.y.cpp"
     break;
 
   case 67:
-#line 203 "/home/yuanli/zju_compiler/src/parser.ypp"
-                                                            { (yyval.exprAST) = new FloatExprAST((yyvsp[0].float_val)); (yyval.exprAST)->setLineno(yylineno); }
-#line 2025 "parser.y.cpp"
+#line 208 "/home/yuanli/zju_compiler/src/parser.ypp"
+                                                            { (yyval.exprAST) = new StringExprAST(*(yyvsp[0].string_val)); (yyval.exprAST)->setLineno(yylineno); }
+#line 2026 "parser.y.cpp"
     break;
 
   case 68:
-#line 205 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 210 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-2].exprAST))); }
-#line 2031 "parser.y.cpp"
+#line 2032 "parser.y.cpp"
     break;
 
   case 69:
-#line 206 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 211 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = new ast_list(); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[0].exprAST))); }
-#line 2037 "parser.y.cpp"
+#line 2038 "parser.y.cpp"
     break;
 
 
-#line 2041 "parser.y.cpp"
+#line 2042 "parser.y.cpp"
 
       default: break;
     }
@@ -2275,7 +2276,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 208 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 213 "/home/yuanli/zju_compiler/src/parser.ypp"
 
 
 /* void yyerror(char* msg){

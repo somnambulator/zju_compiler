@@ -23,6 +23,9 @@ letter [_a-zA-Z]
 INT (0|[1-9]+{digit}*)
 FLOAT ({digit}*\.?{digit}+|{digit}+\.)
 ID {letter}[_0-9a-zA-Z]*
+CHAR \'.\'
+STRING \"(\\.|[^"\\])*\"
+
 RELOP 	">"|"<"|">="|"<="|"=="|"!="
 IF "if"
 ELIF "elif"
@@ -31,7 +34,7 @@ WHILE "while"
 FOR "for"
 IN "in"
 RANGE "range"
-TYPE "int"|"float"|"bool"|"void"
+TYPE "int"|"float"|"bool"|"void"|"char"|"string"
 STRUCT "struct"
 DEF "def"
 VAR "var"
@@ -104,6 +107,7 @@ RC "}"
 {INT} { yylval.int_val = atoi(yytext); return INT;}
 {FLOAT} { yylval.float_val = atof(yytext); return FLOAT;}
 {ID} { yylval.name = new std::string(yytext); return ID; }
+{STRING} { yylval.string_val = new std::string(yytext); return STRING; }
 
 . { ; }
 %%

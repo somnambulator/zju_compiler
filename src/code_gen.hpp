@@ -24,7 +24,7 @@ std::unique_ptr<ExprAST> LogError(const std::string& Str);
 llvm::Value *LogErrorV(const std::string& Str);
 
 class SymbolTable {
-    std::vector<std::map<std::string, llvm::AllocaInst *>*> NamedValues; //stack, for local variables
+    std::vector<std::map<std::string, llvm::Value *>*> NamedValues; //stack, for local variables
     std::map<std::string, llvm::GlobalVariable *> GlobalNamedValues;
 
     std::vector<std::map<std::string, int>*> IDTable; //stack, for local identifiers
@@ -46,7 +46,7 @@ public:
         GlobalIDTable[name] = Exprtype;
     }
 
-    void addLocalVal(std::string name, llvm::AllocaInst * value){
+    void addLocalVal(std::string name, llvm::Value * value){
         if (NamedValues.size()<0){
             pushNamedValue();
         }
@@ -61,7 +61,7 @@ public:
     }
 
     void pushNamedValue(){
-        NamedValues.push_back(new std::map<std::string, llvm::AllocaInst *>());
+        NamedValues.push_back(new std::map<std::string, llvm::Value *>());
     }
 
     void pushIDTable(){

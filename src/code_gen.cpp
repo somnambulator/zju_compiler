@@ -81,12 +81,42 @@ llvm::Value *VoidExprAST::codegen() {
   return llvm::ConstantPointerNull::getNullValue(typeGen(type_int));
 }
 
+llvm::Value *CreateStringMem(llvm::StringRef bufferRef) {
+  llvm::Constant *strname = llvm::ConstantDataArray::getString(TheContext, bufferRef);
+  llvm::Value *strmem = Builder.CreateAlloca(strname->getType(), llvm::ConstantExpr::getSizeOf(strname->getType()));
+
+  std::vector<llvm::Value*> index_vector;
+  index_vector.push_back(llvm::ConstantInt::get(typeGen(type_int), 0));
+  llvm::Value *valueAsPtr = Builder.CreateGEP(strmem, index_vector, "strtmp");
+  
+  Builder.CreateStore(strname, valueAsPtr);
+  return strmem;
+}
+
+llvm::Value *StringExprAST::codegen() {
+  char buffer[256];
+  memset(buffer, 0, 256);
+  if(Str.length()>=256){
+    std::string err = "The length of string is too long(>255)!";
+    LogErrorV(this->getLineno(), err);
+    return nullptr;
+  }
+  Str.copy(buffer, Str.length(), 0);
+  // std::string tmpstr(buffer);
+  llvm::StringRef bufferRef(buffer, 255);
+  // if(global){
+  //   return Builder.CreateGlobalString(bufferRef, "str");
+  // }
+  // return Builder.CreateLoad(straddr, "tmpstr");
+  return CreateStringMem(bufferRef);
+}
+
 llvm::Value *VariableExprAST::codegen() {
   // Look this variable up in the function.
   llvm::Value *V = symbolTable._FindValue(Name);
   
   if (!V){
-    llvm::GlobalVariable *GV = symbolTable._FindGlobalValue(Name);
+    llvm::Value *GV = symbolTable._FindGlobalValue(Name);
     if(!GV) {
       std::string err = "Unknown variable name: "+Name;
       return LogErrorV(this->getLineno(), err);
@@ -94,12 +124,22 @@ llvm::Value *VariableExprAST::codegen() {
     else {
       //set type recursively
       this->SetType(symbolTable.getType(Name));
-      return Builder.CreateLoad(GV, Name.c_str());
+      if(symbolTable.getType(Name)!=type_string){
+        return Builder.CreateLoad(GV, Name.c_str());
+      }
+      else{
+        return GV;
+      }
     }
   }
   //set type recursively
   this->SetType(symbolTable.getType(Name));
-  return Builder.CreateLoad(V, Name.c_str());
+  if(symbolTable.getType(Name)!=type_string){
+    return Builder.CreateLoad(V, Name.c_str());
+  }
+  else{
+    return V;
+  }
 }
 
 llvm::Value *GlobalDecListAST::codegen() {
@@ -129,9 +169,25 @@ llvm::Value *DecListAST::codegen(){
   }
 }
 
-llvm::GlobalVariable *createGlob(llvm::Type *type, std::string name) {
-  TheModule->getOrInsertGlobal(name, type);
+llvm::GlobalVariable *createGlob(std::string name, int dType) {
+  TheModule->getOrInsertGlobal(name, typeGen(dType));
   llvm::GlobalVariable *gVar = TheModule->getNamedGlobal(name);
+  switch (dType)
+    {
+    case type_bool:
+      gVar->setInitializer(llvm::ConstantInt::get(typeGen(type_bool), 0, false));
+      break;
+    case type_int:
+      gVar->setInitializer(llvm::ConstantInt::get(TheContext, llvm::APInt(32, 0, true)));
+      break;
+    case type_float:
+      gVar->setInitializer(llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0)));
+      break;
+    default:
+      // ERROR
+      gVar = nullptr;
+      break;
+    }
   return gVar;
 }
 
@@ -151,6 +207,9 @@ llvm::Value *DecExprAST::codegen(){
     }
 
     llvm::Value* InitVal;
+    char buffer[256];
+    memset(buffer, 0, 256);
+    llvm::StringRef bufferRef(buffer, 255);
     switch (dType)
     {
     case type_bool:
@@ -162,18 +221,27 @@ llvm::Value *DecExprAST::codegen(){
     case type_float:
       InitVal = llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0));
       break;
+    case type_string:
+      InitVal = CreateStringMem(bufferRef);
+      break;
     default:
       // ERROR
-      LogErrorV(this->getLineno(), std::string("Unknown type!\n"));
+      LogErrorV(this->getLineno(), std::string("Unknown type!"));
       break;
     }
-
-    llvm::AllocaInst *Alloca = CreateEntryBlockAlloca(Func, VarName, dType);
-    Builder.CreateStore(InitVal, Alloca);
-
-    symbolTable.addLocalVal(VarName, Alloca);
-
-    return Alloca;
+    
+    if (dType>0 && dType<type_string){
+      llvm::AllocaInst *Alloca = CreateEntryBlockAlloca(Func, VarName, dType);
+      Builder.CreateStore(InitVal, Alloca);
+      symbolTable.addLocalVal(VarName, Alloca);
+      return Alloca;
+    }
+    else{
+      // no need to store, since string is a global variable
+      symbolTable.addLocalVal(VarName, InitVal);
+      return InitVal;
+    }
+    return nullptr;
   }
   else {
     // llvm::Function* Func = Builder.GetInsertBlock()->getParent();
@@ -181,7 +249,7 @@ llvm::Value *DecExprAST::codegen(){
     int dType = Type->getType();
 
     //First check redefinition
-    if (! symbolTable._FindGlobalValue(VarName)){
+    if (!symbolTable._FindGlobalValue(VarName)){
       symbolTable.addGlobalID(VarName, getDType());
     }
     else{
@@ -190,24 +258,29 @@ llvm::Value *DecExprAST::codegen(){
     }
 
     llvm::GlobalVariable* gVar;
-    switch (dType)
-    {
-    case type_bool:
-      gVar = createGlob(typeGen(type_bool), VarName);
-      gVar->setInitializer(llvm::ConstantInt::get(typeGen(type_bool), 0, false));
-      break;
-    case type_int:
-      gVar = createGlob(typeGen(type_int), VarName);
-      gVar->setInitializer(llvm::ConstantInt::get(TheContext, llvm::APInt(32, 0, true)));
-      break;
-    case type_float:
-      gVar = createGlob(typeGen(type_float), VarName);
-      gVar->setInitializer(llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0)));
-      break;
-    default:
-      // ERROR
-      LogErrorV(this->getLineno(), std::string("Unknown type!\n"));
-      break;
+    char buffer[256];
+    memset(buffer, 256, 0);
+    llvm::StringRef bufferRef(buffer, 255);
+    if(dType>=0 && dType<=type_float){
+      gVar = createGlob(VarName, dType);
+      if(!gVar){
+        std::string err = "Unknown type!";
+        LogErrorV(this->getLineno(), err);
+        return nullptr;
+      }
+    }
+    else if(dType == type_string){
+      // gVar = Builder.CreateGlobalString(bufferRef, "globalstr");
+      // llvm::ArrayType* stringType = llvm::ArrayType::get(typeGen(type_char), 255);
+      llvm::Constant *strname = llvm::ConstantDataArray::getString(TheContext, bufferRef);
+      TheModule->getOrInsertGlobal(VarName, strname->getType());
+      gVar = TheModule->getNamedGlobal(VarName);
+      gVar->setInitializer(strname);
+    }
+    else{
+      std::string err = "Unknown type!";
+      LogErrorV(this->getLineno(), err);
+      return nullptr;
     }
     
     symbolTable.addGlobalVal(VarName, gVar);
@@ -427,11 +500,27 @@ llvm::Value *AssignExprAST::codegen(){
 
   // get the type of expression recursicely
   RType = RHS->getType();
+  if(LType == type_string && RType == type_string){
+    llvm::Value* RHSstr = Builder.CreateLoad(RHSVal, "assigntmpstr");
+    std::vector<llvm::Value*> index_vector;
+    index_vector.push_back(llvm::ConstantInt::get(typeGen(type_int), 0));
+    llvm::Value *valueAsPtr = Builder.CreateGEP(LHSAddr, index_vector, "strtmp");
+    Builder.CreateStore(RHSstr, valueAsPtr);
+    // llvm::MaybeAlign align(1);
+    // Builder.CreateMemCpy(LHSAddr, align, RHSVal, align, 256);
+    return RHSVal;
+  }
+  else if(LType == type_string && RType != type_string){
+    std::string err = "Wrong assignment for string!";
+    LogErrorV(this->getLineno(), err);
+    return nullptr;
+  }
+
   if (RType<LType && LType <= type_float) {
     if (RType == type_bool) RHSVal = Builder.CreateUIToFP(RHSVal, typeGen(LType));
     else RHSVal = Builder.CreateSIToFP(RHSVal, typeGen(LType));
   }
-  else if (RType == LType){
+  else if (RType == LType && LType <= type_float){
     // do nothing
   }
   else{
@@ -516,6 +605,11 @@ llvm::Value *BinaryExprAST::codegen() {
   
   // recursively set type
   this->SetType(ThisType);
+  if(ThisType >= type_string){
+    std::string err = "Wrong type for binary operation!";
+    LogErrorV(this->getLineno(), err);
+    return nullptr;
+  }
 
   // do arithmetic
   if(Op == "+"){
@@ -629,6 +723,9 @@ llvm::Value* FuncPrint(int lineno, ast_list Args){
       // for numbers or bools
       new_arg = Args[i]->codegen();
     }
+    else if(type == type_string){
+      new_arg = Args[i]->codegen();    
+    }
     else{
       LogErrorV(lineno, std::string("Wrong type for print"));
       return nullptr;
@@ -640,6 +737,10 @@ llvm::Value* FuncPrint(int lineno, ast_list Args){
     }
     else if(type == type_float){
       format += "%f";
+      printArgs.push_back(new_arg);
+    }
+    else if(type == type_string){
+      format += "%s";
       printArgs.push_back(new_arg);
     }
   }

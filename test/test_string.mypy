@@ -1,0 +1,12 @@
+b:string;
+
+def main()->void:{
+var
+    a:string;
+stmt
+    print("hello world!");
+    a:="hello!";
+    b:="hello global!";
+    print(a);
+    print(b);
+}

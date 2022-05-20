@@ -24,6 +24,12 @@ Json::Value VoidExprAST::print(){
     return root;
 }
 
+Json::Value StringExprAST::print(){
+    Json::Value root;
+    root["name"] = "StringExprAST";
+    return root;
+}
+
 Json::Value VariableExprAST::print(){
     Json::Value root;
     root["name"] = "VariableExprAST: "+Name;

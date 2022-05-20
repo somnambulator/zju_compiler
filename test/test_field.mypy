@@ -12,6 +12,7 @@ stmt
         print(b);
     }
     print(a);
-    print(gi+7);
+    gi:=gi+7;
+    print(gi);
     print(gf+7.7);
 }

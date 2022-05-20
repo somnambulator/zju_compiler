@@ -36,6 +36,7 @@
 #define type_int 4
 #define type_float 5
 #define type_charptr 6
+#define type_string 7
 
 #define type_ID 100
 #define type_binaryExpr 101
@@ -87,6 +88,9 @@ public:
     else if (TypeName == "void"){
       this->SetType(type_void);
     }
+    else if (TypeName == "string"){
+      this->SetType(type_string);
+    }
     else{
       this->SetType(type_error);
     }
@@ -110,6 +114,9 @@ public:
       break;
     case type_char:
       ret = "Char";
+      break;
+    case type_string:
+      ret = "String";
       break;
     default:
       ret = "Unknown Type";
@@ -164,6 +171,24 @@ class FloatExprAST : public ExprAST {
 
 public:
   FloatExprAST(double Val) : Val(Val) {this->SetType(type_float);}
+
+  llvm::Value *codegen() override;
+  Json::Value print() override;
+};
+
+/// StringExprAST - Expression class for Stings.
+class StringExprAST : public ExprAST {
+  std::string Str;
+  bool global;
+
+public:
+  StringExprAST(std::string InStr) {
+      Str = InStr.substr(1,InStr.length()-2);
+      this->SetType(type_string);
+      global = 0;
+    }
+
+  void setGlobal(bool glb){global = glb;}
 
   llvm::Value *codegen() override;
   Json::Value print() override;
