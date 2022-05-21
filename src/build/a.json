@@ -1,0 +1,66 @@
+{
+	"children" : 
+	[
+		{
+			"children" : 
+			[
+				{
+					"children" : 
+					[
+						{
+							"name" : "TypeAST: Int"
+						}
+					],
+					"name" : "PrototypeAST: main"
+				},
+				{
+					"children" : 
+					[
+						{
+							"children" : 
+							[
+								{
+									"children" : 
+									[
+										{
+											"name" : "ArrayDecAST: a, size:10"
+										},
+										{
+											"name" : "TypeAST: IntPtr"
+										}
+									],
+									"name" : "DecExprAST"
+								}
+							],
+							"name" : "DecListAST"
+						},
+						{
+							"children" : 
+							[
+								{
+									"name" : "ArrayEleAST: a"
+								}
+							],
+							"name" : "CallExprAST: read"
+						},
+						{
+							"children" : 
+							[
+								{
+									"name" : "ArrayEleAST: a"
+								}
+							],
+							"name" : "CallExprAST: print"
+						},
+						{
+							"name" : "VoidExprAST"
+						}
+					],
+					"name" : "BodyAST"
+				}
+			],
+			"name" : "FunctionAST"
+		}
+	],
+	"name" : "Program"
+}
