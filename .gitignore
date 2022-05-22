@@ -1,2 +1,6 @@
-./gitignore
-./vscode/*
+# ./gitignore
+.vscode/
+.idea
+build/
+cmake-build-debug/
+src/build/

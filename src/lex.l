@@ -60,6 +60,7 @@ LB "["
 RB "]"
 LC "{"
 RC "}"
+COMMENT "#".*
 
 %%
 
@@ -108,6 +109,8 @@ RC "}"
 {FLOAT} { yylval.float_val = atof(yytext); return FLOAT;}
 {ID} { yylval.name = new std::string(yytext); return ID; }
 {STRING} { yylval.string_val = new std::string(yytext); return STRING; }
+
+{COMMENT} {;}
 
 . { ; }
 %%

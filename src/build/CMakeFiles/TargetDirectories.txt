@@ -1,6 +1,0 @@
-/home/yuanli/zju_compiler/src/build/CMakeFiles/rebuild_cache.dir
-/home/yuanli/zju_compiler/src/build/CMakeFiles/mypy.dir
-/home/yuanli/zju_compiler/src/build/CMakeFiles/acc_gen.dir
-/home/yuanli/zju_compiler/src/build/CMakeFiles/edit_cache.dir
-/home/yuanli/zju_compiler/src/build/CMakeFiles/omp_gen.dir
-/home/yuanli/zju_compiler/src/build/CMakeFiles/intrinsics_gen.dir
