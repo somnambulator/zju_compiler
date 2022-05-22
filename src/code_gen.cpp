@@ -14,6 +14,16 @@ llvm::Value *LogErrorV(int lineno, const std::string& Str) {
 }
 
 llvm::Type *typeGen(int type){
+  static llvm::Type* Type_String = nullptr;
+  if(!Type_String){
+    char buffer[256];
+    memset(buffer, 0, 256);
+    llvm::StringRef bufferRef(buffer, 255);
+    llvm::Constant *strname = llvm::ConstantDataArray::getString(TheContext, bufferRef);
+    TheModule->getOrInsertGlobal("strtype", strname->getType());
+    llvm::GlobalVariable *gVar = TheModule->getNamedGlobal("strtype");
+    Type_String = gVar->getType();
+  }
   switch (type){
     case type_void:
       return llvm::Type::getVoidTy(TheContext);
@@ -21,12 +31,18 @@ llvm::Type *typeGen(int type){
       return llvm::Type::getInt1Ty(TheContext);
     case type_int:
       return llvm::Type::getInt32Ty(TheContext);
+    case type_intptr:
+      return llvm::Type::getInt32PtrTy(TheContext);
     case type_char:
       return llvm::Type::getInt8Ty(TheContext);
     case type_charptr:
       return llvm::Type::getInt8PtrTy(TheContext);
     case type_float:
       return llvm::Type::getDoubleTy(TheContext);
+    case type_floatptr:
+      return llvm::Type::getDoublePtrTy(TheContext);
+    case type_string:
+      return Type_String;
     default:
       return llvm::Type::getInt32Ty(TheContext);
   }
@@ -109,6 +125,107 @@ llvm::Value *StringExprAST::codegen() {
   // }
   // return Builder.CreateLoad(straddr, "tmpstr");
   return CreateStringMem(bufferRef);
+}
+
+llvm::Value *ArrayDecAST::codegen() {
+  if(size >= 0){
+    int dType;
+    switch (this->getType())
+    {
+    case type_intptr:
+      dType = type_int;
+      break;
+    case type_floatptr:
+      dType = type_float;
+      break;
+    default:
+      break;
+    }
+    llvm::ArrayType *arrayType = llvm::ArrayType::get(typeGen(dType), size);
+    llvm::Function* Func = Builder.GetInsertBlock()->getParent();
+    
+    llvm::Value *arrayptr = CreateEntryBlockAlloca(Func, Name, arrayType);
+    return arrayptr;
+  }
+  else{ // for parameters like "a[]" with size=-1
+    std::string err;
+    llvm::Value *arrayptr = symbolTable.FindValue(Name);
+    if(!arrayptr){
+      return LogErrorV(this->getLineno(), std::string("No such array!"));
+    }
+    IntExprAST *zero = new IntExprAST(0);
+    llvm::Value* Index = zero->codegen();
+    llvm::Value* eleAddr = Builder.CreateInBoundsGEP(arrayptr, Index, "arrayStartAddr");
+    return Builder.CreateInBoundsGEP(arrayptr, Index, "arrayele");
+  }
+}
+
+llvm::Value *ArrayEleAST::codegen() {
+  // Look this variable.
+  llvm::Value *arrayptr = symbolTable._FindValue(Name);
+  
+  std::string err;
+  // ast_list MaxIndexList(arraydec->getMaxIndex());
+  llvm::Value *index;
+  if(idx_list.size()>1){
+    /////////////////////////////////////////////////////////
+    ArrayDecAST *arraydec = symbolTable.FindArray(Name);
+    if(!arraydec){
+      return LogErrorV(this->getLineno(), std::string("No such global array!"));
+    }
+    BinaryExprAST *result;
+    IntExprAST *init = new IntExprAST(0);
+    std::string mul = "*";
+    std::string add = "+";
+    for (int i=idx_list.size()-1;i>=0;i--){
+      if(i == idx_list.size()-1) result = new BinaryExprAST(mul, arraydec->getMaxIndex(i), init);
+      else result = new BinaryExprAST(mul, arraydec->getMaxIndex(i), result);
+
+      result = new BinaryExprAST(add, idx_list[i].get(), result);
+    }
+    // get the index for array element access
+    index = result->codegen();
+    ///////////////////////for multiple dimension global array
+  }
+  else { // for one dimension local array
+    index = idx_list[0]->codegen();
+  }
+  int dType;
+
+  if (!arrayptr){
+    llvm::GlobalVariable *Garrayptr = symbolTable._FindGlobalValue(Name);
+    if(!Garrayptr) {
+      err = "Unknown variable name: "+Name;
+      return LogErrorV(this->getLineno(), err);
+    }
+    else {
+      //set type recursively
+      dType = symbolTable.getType(Name);
+      if (dType == type_intptr){ 
+        this->SetType(type_int);
+      }
+      else if(dType == type_floatptr){
+        this->SetType(type_float);
+      }
+      // arrayptr = Builder.CreateBitCast(Garrayptr, typeGen(dType), "ElementwiseAddr");
+      arrayptr = llvm::GetElementPtrInst::CreateInBounds(Garrayptr, index, "arrayele");
+      arrayptr = Builder.CreateBitCast(Garrayptr, typeGen(dType), "ElementwiseAddr");
+      llvm::Value* eleAddr = Builder.CreateInBoundsGEP(arrayptr, index, "arrayele");
+      return eleAddr;
+    }
+  }
+  // //set type recursively
+  dType = symbolTable.getType(Name); // dType is the data type of element rather than pointer type of the whole array
+  // // if the array is a parameter rather than declared locally
+  if (dType == type_intptr){ 
+    this->SetType(type_int);
+  }
+  else if(dType == type_floatptr){
+    this->SetType(type_float);
+  }
+
+  llvm::Value* eleAddr = Builder.CreateInBoundsGEP(arrayptr, index, "arrayele");
+  return eleAddr;
 }
 
 llvm::Value *VariableExprAST::codegen() {
@@ -194,9 +311,8 @@ llvm::GlobalVariable *createGlob(std::string name, int dType) {
 llvm::Value *DecExprAST::codegen(){
   if(!global){
     llvm::Function* Func = Builder.GetInsertBlock()->getParent();
-    const std::string &VarName = name;
+    const std::string &VarName = Name;
     int dType = Type->getType();
-
     //First check redefinition
     if (! symbolTable._FindValue(VarName)){
       symbolTable.addLocalID(VarName, getDType());
@@ -204,6 +320,28 @@ llvm::Value *DecExprAST::codegen(){
     else{
       std::string err = "Variable redefinition: " + VarName;
       LogErrorV(this->getLineno(), err);
+      return nullptr;
+    }
+
+    if(Array != nullptr){
+      if(Array->getType() == type_arrayDec){
+        Array->SetType(dType);
+        // get the memory pointer in [n*i32]* type etc.
+        llvm::Value* arrayptr = Array->codegen();
+        if(!arrayptr){
+          return LogErrorV(this->getLineno(), std::string("Fail to generate array!"));
+        }
+        // convert ptr into bytewise
+        arrayptr = Builder.CreateBitCast(arrayptr, typeGen(dType), "ElementwiseAddr"); // create element wise ptr like i32* rather than ptr like [n*i32]*
+        
+        symbolTable.addLocalID(VarName, dType);
+        symbolTable.addLocalVal(VarName, arrayptr);
+        symbolTable.addArray(VarName, Array.get());
+        return arrayptr;
+      }
+      else if(Array->getType() == type_arrayParam){
+        return LogErrorV(this->getLineno(), std::string("Wrong declaration for Array! Size needed!\n"));
+      }
     }
 
     llvm::Value* InitVal;
@@ -236,16 +374,16 @@ llvm::Value *DecExprAST::codegen(){
       symbolTable.addLocalVal(VarName, Alloca);
       return Alloca;
     }
-    else{
+    else if(dType == type_string){
       // no need to store, since string is a global variable
       symbolTable.addLocalVal(VarName, InitVal);
       return InitVal;
     }
     return nullptr;
   }
-  else {
+  else { //for global variables
     // llvm::Function* Func = Builder.GetInsertBlock()->getParent();
-    const std::string &VarName = name;
+    const std::string &VarName = Name;
     int dType = Type->getType();
 
     //First check redefinition
@@ -255,6 +393,31 @@ llvm::Value *DecExprAST::codegen(){
     else{
       std::string err = "Global Variable redefinition: " + VarName;
       LogErrorV(this->getLineno(), err);
+    }
+
+    if(Array != nullptr){
+      if(Array->getType() == type_arrayDec){
+        Array->SetType(dType);
+        // get the memory pointer in [n*i32]* type etc.
+        llvm::ArrayType *arrayType = llvm::ArrayType::get(typeGen(this->getType()), Array->getSize());
+        // TheModule->getOrInsertGlobal(VarName, arrayType);
+        llvm::GlobalVariable *arrayptr = new llvm::GlobalVariable(*TheModule.get(), arrayType, false, llvm::GlobalValue::InternalLinkage, 0, VarName);
+        arrayptr->setAlignment(llvm::MaybeAlign(4));
+        if(!arrayptr){
+          return LogErrorV(this->getLineno(), std::string("Fail to generate array!"));
+        }
+        // here we don't convert ptr into bytewise
+        llvm::ConstantAggregateZero* const_array = llvm::ConstantAggregateZero::get(arrayType);
+        arrayptr->setInitializer(const_array);
+
+        symbolTable.addGlobalID(VarName, dType);
+        symbolTable.addGlobalVal(VarName, arrayptr);
+        symbolTable.addArray(VarName, Array.get());
+        return arrayptr;
+      }
+      else if(Array->getType() == type_arrayParam){
+        return LogErrorV(this->getLineno(), std::string("Wrong Global declaration for Array! Size needed!\n"));
+      }
     }
 
     llvm::GlobalVariable* gVar;
@@ -469,6 +632,9 @@ llvm::Value* WhileExprAST::codegen(){
 llvm::Value *AssignExprAST::codegen(){
   std::string VarName;
   int LType, RType;
+  llvm::Value *RHSVal, *LHSAddr;
+  RHSVal = nullptr;
+  LHSAddr = nullptr;
 
   if (LHS->getType() == type_ID){
     VarName = static_cast<VariableExprAST*>(LHS.get())->getName();
@@ -476,29 +642,48 @@ llvm::Value *AssignExprAST::codegen(){
   }
   else if(LHS->getType() == type_Dec){
     DecExprAST* tmp = static_cast<DecExprAST*>(LHS.get());
-    tmp->codegen();
+    tmp->codegen(); // recursively set data type
     VarName = tmp->getName();
-    LType = tmp->getDType();
+    LType = symbolTable.getType(VarName);
+  }
+  else if(LHS->getType() == type_arrayEle){
+    ArrayEleAST* tmp = static_cast<ArrayEleAST*>(LHS.get());
+    LHSAddr = tmp->codegen(); // get the address of the element
+    VarName = tmp->getName();
+    LType = symbolTable.getType(VarName);
+    if(LType == type_intptr){ // get the type of the pointer
+      LType = type_int; // get the data type of element
+    }
+    else if(LType == type_floatptr){
+      LType = type_float;
+    }
   }
   else{
     std::string err = "Wrong LHS type: "+VarName+" !";
-    LogErrorV(this->getLineno(), err);
+    return LogErrorV(this->getLineno(), err);
   }
 
-  llvm::Value* RHSVal = RHS->codegen();
-
+  if(RHS->getType() == type_arrayEle){
+    RHSVal = Builder.CreateLoad(RHS->codegen(), "arrayElement");
+  }
+  else{
+    RHSVal = RHS->codegen();
+  }
+  
   if(!RHSVal){
     LogErrorV(this->getLineno(), std::string("Wrong RHS!"));
     return nullptr;
   }
 
-  llvm::Value* LHSAddr = symbolTable.FindValue(VarName);
   if(!LHSAddr){
-    std::string err = "Unknown variable name: "+VarName;
-    return LogErrorV(this->getLineno(), err);
+    LHSAddr = symbolTable.FindValue(VarName); // get the address of lhs expression
+    if(!LHSAddr){
+      std::string err = "Unknown variable name: "+VarName;
+      return LogErrorV(this->getLineno(), err);
+    }
   }
 
-  // get the type of expression recursicely
+  // get the data type of expression recursicely
   RType = RHS->getType();
   if(LType == type_string && RType == type_string){
     llvm::Value* RHSstr = Builder.CreateLoad(RHSVal, "assigntmpstr");
@@ -542,6 +727,7 @@ llvm::Value *AssignExprAST::codegen(){
     }
     std::string err = "Wrong assignment for "+VarName+": type of RHS doesn't match! RHS type:"+rhs_type+"!";
     LogErrorV(this->getLineno(), err);
+    return nullptr;
   }
 
   Builder.CreateStore(RHSVal, LHSAddr);
@@ -550,22 +736,47 @@ llvm::Value *AssignExprAST::codegen(){
 }
 
 llvm::Value *BinaryExprAST::codegen() {
-  llvm::Value *L = LHS->codegen();
-  llvm::Value *R = RHS->codegen();
-  if (!L || !R)
-    return nullptr;
-
+  llvm::Value *L;
+  llvm::Value *R;
+  
   int LType = LHS->getType();
-  if(LHS->getType()==type_ID){
+  if(LType==type_ID){
     std::string name = static_cast<VariableExprAST*>(LHS.get())->getName();
+    L = LHS->codegen();
     LType = symbolTable.FindID(name);
+  }
+  else if(LType == type_arrayEle){
+    ArrayEleAST* tmp = static_cast<ArrayEleAST*>(LHS.get());
+    L = LHS->codegen();
+    std::string VarName = tmp->getName();
+    LType = LHS->getType();
+    L = Builder.CreateLoad(L, "arrayElementValue");
+  }
+  else{
+    L = LHS->codegen();
+    LType = LHS->getType();
   }
 
   int RType = RHS->getType();
-  if(RHS->getType()==type_ID){
+  if(RType==type_ID){
     std::string name = static_cast<VariableExprAST*>(RHS.get())->getName();
+    R = RHS->codegen();
     RType = symbolTable.FindID(name);
   }
+  else if(RType == type_arrayEle){
+    ArrayEleAST* tmp = static_cast<ArrayEleAST*>(RHS.get());
+    R = RHS->codegen();
+    std::string VarName = tmp->getName();
+    RType = RHS->getType();
+    R = Builder.CreateLoad(R, "arrayElementValue");
+  }
+  else{
+    R = RHS->codegen();
+    RType = RHS->getType();
+  }
+
+  if (!L || !R)
+    return nullptr;
 
   int ThisType, MaxType;
   if (Op=="+" || Op=="-" || Op=="*"){
@@ -686,7 +897,7 @@ llvm::Value *BinaryExprAST::codegen() {
   }
 }
 
-llvm::Value* FuncPrint(int lineno, ast_list Args){
+llvm::Value* FuncPrint(int lineno, ast_list Args, bool newline){
   static llvm::Function *printFunc = nullptr;
   // not defined before
   if(!printFunc){
@@ -719,6 +930,13 @@ llvm::Value* FuncPrint(int lineno, ast_list Args){
       std::string Callee = static_cast<CallExprAST *>(Args[i].get())->getCallee();
       type = symbolTable.getProtoType(Callee)->getRetType();
     }
+    else if(type == type_arrayEle){
+      // for array elements
+      new_arg = Args[i]->codegen();
+      new_arg = Builder.CreateLoad(new_arg, "arrayelement");
+      // type = symbolTable.getType(static_cast<ArrayEleAST*>(Args[i].get())->getName());
+      type = Args[i]->getType();
+    }
     else if(type > 0 && type <= type_float){
       // for numbers or bools
       new_arg = Args[i]->codegen();
@@ -727,8 +945,7 @@ llvm::Value* FuncPrint(int lineno, ast_list Args){
       new_arg = Args[i]->codegen();    
     }
     else{
-      LogErrorV(lineno, std::string("Wrong type for print"));
-      return nullptr;
+      return LogErrorV(lineno, std::string("Wrong type for print"));
     }
 
     if (type == type_bool || type == type_int){
@@ -743,19 +960,94 @@ llvm::Value* FuncPrint(int lineno, ast_list Args){
       format += "%s";
       printArgs.push_back(new_arg);
     }
+    else{
+      return LogErrorV(lineno, std::string("Wrong type for print"));
+    }
   }
-
-  format += "\n";
+  if(newline){
+    format += "\n";
+  }
 
   printArgs[0] = Builder.CreateGlobalStringPtr(format, "printfomat");
   return Builder.CreateCall(printFunc, printArgs, "printtmp");
 }
 
-llvm::Value *CallExprAST::codegen() {
-  if (Callee == "print"){
-    return FuncPrint(this->getLineno(), std::move(Args));
+llvm::Value* FuncRead(int lineno, ast_list Args){
+  if(Args.size() > 1){
+    return LogErrorV(lineno, std::string("Too much arguments for read!"));
+  }
+  static llvm::Function *readFunc = nullptr;
+  // not defined before
+  if(!readFunc){
+    std::vector<llvm::Type*> Arg_List = {typeGen(type_charptr)};
+    llvm::FunctionType *FT = llvm::FunctionType::get(llvm::Type::getInt32Ty(TheContext), Arg_List, true);
+    llvm::Function *F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "scanf", TheModule.get());
+    //set calling conventions to be C calling conventions
+    F->setCallingConv(llvm::CallingConv::C);
+    readFunc = F;
   }
   
+  std::string format;
+  std::vector<llvm::Value*> readArgs = {nullptr};
+  for (int i=Args.size()-1;i>=0;i--){
+    int type = Args[i]->getType();
+    llvm::Value *new_arg;
+    if(type == type_ID){
+      // for variable
+      // new_arg = Args[i]->codegen();
+      std::string VarName = static_cast<VariableExprAST*>(Args[i].get())->getName();
+      type = symbolTable.getType(VarName);
+      new_arg = symbolTable.FindValue(VarName);
+    }
+    else if(type == type_arrayEle){
+      // for array elements
+      new_arg = Args[i]->codegen();
+      // new_arg = Builder.CreateLoad(new_arg, "arrayelement");
+      // type = symbolTable.getType(static_cast<ArrayEleAST*>(Args[i].get())->getName());
+      type = Args[i]->getType();
+    }
+    else if(type > 0 && type <= type_float){
+      // for numbers or bools
+      new_arg = Args[i]->codegen();
+    }
+    else if(type == type_string){
+      new_arg = Args[i]->codegen();    
+    }
+    else{
+      return LogErrorV(lineno, std::string("Wrong type for read"));
+    }
+
+    if (type == type_bool || type == type_int){
+      format += "%d";
+      readArgs.push_back(new_arg);
+    }
+    else if(type == type_float){
+      format += "%f";
+      readArgs.push_back(new_arg);
+    }
+    else if(type == type_string){
+      format += "%s";
+      readArgs.push_back(new_arg);
+    }
+    else{
+      return LogErrorV(lineno, std::string("Wrong type for read"));
+    }
+  }
+
+  readArgs[0] = Builder.CreateGlobalStringPtr(format, "readfomat");
+  return Builder.CreateCall(readFunc, readArgs, "readtmp");
+}
+
+llvm::Value *CallExprAST::codegen() {
+  if (Callee == "print"){
+    return FuncPrint(this->getLineno(), std::move(Args), 0);
+  }
+  if (Callee == "println"){
+    return FuncPrint(this->getLineno(), std::move(Args), 1);
+  }
+  if (Callee == "read"){
+    return FuncRead(this->getLineno(), std::move(Args));
+  }
   // Look up the name in the global module table.
   llvm::Function *CalleeF = getFunction(Callee);
   if (!CalleeF)
@@ -777,8 +1069,7 @@ llvm::Value *CallExprAST::codegen() {
   this->SetType(retDtype);
 
   // bool HasReturn = symbolTable.getProtoType(Callee)->hasReturn();
-  int retType = symbolTable.getProtoType(Callee)->getRetType();
-  if(retType == type_void){
+  if(retDtype == type_void){
     return Builder.CreateCall(CalleeF, ArgsV);
   }
   return Builder.CreateCall(CalleeF, ArgsV, "calltmp");
@@ -906,9 +1197,13 @@ llvm::Function *FunctionAST::codegen() {
 
     // Store the initial value into the alloca.
     Builder.CreateStore(&Arg, Alloca);
-
+    if (Proto->getArgType(i) == type_intptr || Proto->getArgType(i) == type_floatptr){
+      symbolTable.addLocalVal(Arg.getName().str(), &Arg);
+    } 
+    else {
+      symbolTable.addLocalVal(Arg.getName().str(), Alloca);
+    }
     // Add arguments to variable symbol table.
-    symbolTable.addLocalVal(Arg.getName().str(), Alloca);
     symbolTable.addLocalID(Arg.getName().str(), Proto->getArgType(i++));
   }
 

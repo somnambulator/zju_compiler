@@ -55,14 +55,14 @@ int main(int argc, char** argv){
     yyparse();
     std::cout<< "Finish parsing." <<std::endl;
 
-    std::cout<< "Start to generate AST." <<std::endl;
+    std::cout<< "Start to print AST to Json." <<std::endl;
     Json::Value root = Program->print();
     std::ofstream jsonfile(out_name+".json");
     if(jsonfile.is_open()){
         jsonfile << root;
         jsonfile.close();
     }
-    std::cout<< "Finish AST generation." <<std::endl;
+    std::cout<< "Finish AST printing." <<std::endl;
 
     std::cout<< "Start to generate code." <<std::endl;
     std::string Str = Program->codegen();

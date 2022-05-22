@@ -30,6 +30,18 @@ Json::Value StringExprAST::print(){
     return root;
 }
 
+Json::Value ArrayDecAST::print(){
+    Json::Value root;
+    root["name"] = "ArrayDecAST: "+Name+", size:"+std::to_string(size);
+    return root;
+}
+
+Json::Value ArrayEleAST::print(){
+    Json::Value root;
+    root["name"] = "ArrayEleAST: "+Name;
+    return root;
+}
+
 Json::Value VariableExprAST::print(){
     Json::Value root;
     root["name"] = "VariableExprAST: "+Name;
@@ -57,7 +69,8 @@ Json::Value DecListAST::print(){
 Json::Value DecExprAST::print(){
     Json::Value root;
     root["name"] = "DecExprAST";
-    root["children"].append(Var->print());
+    if(Var) root["children"].append(Var->print());
+    else if(Array) root["children"].append(Array->print());
     root["children"].append(Type->print());
     return root;
 }

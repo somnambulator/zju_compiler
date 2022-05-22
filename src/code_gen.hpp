@@ -30,6 +30,9 @@ class SymbolTable {
     std::vector<std::map<std::string, int>*> IDTable; //stack, for local identifiers
     std::map<std::string, int> GlobalIDTable;
 
+    std::map<std::string, ArrayDecAST *> ArrayTable; //stack, for local variables
+    // std::map<std::string, llvm::GlobalVariable *> GlobalArrayAddr;
+
     std::map<std::string, PrototypeAST *> PrototypeTable; 
 
 public:
@@ -122,6 +125,16 @@ public:
         }
         return -1;
     }
-    
+
+    void addArray(std::string name, ArrayDecAST* arraydec){
+        ArrayTable[name] = arraydec;
+    }
+
+    ArrayDecAST* FindArray(std::string name) {
+        if(ArrayTable.find(name) != ArrayTable.end()){
+            return ArrayTable[name];
+        }
+        return nullptr;
+    }
 };
 

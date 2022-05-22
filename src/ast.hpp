@@ -36,7 +36,12 @@
 #define type_int 4
 #define type_float 5
 #define type_charptr 6
-#define type_string 7
+#define type_intptr 7
+#define type_floatptr 8
+#define type_string 9
+#define type_arrayEle 10
+#define type_arrayDec 11
+#define type_arrayParam 12
 
 #define type_ID 100
 #define type_binaryExpr 101
@@ -109,8 +114,14 @@ public:
     case type_int:
       ret = "Int";
       break;
+    case type_intptr:
+      ret = "IntPtr";
+      break;
     case type_float:
       ret = "Float";
+      break;
+    case type_floatptr:
+      ret = "FloatPtr";
       break;
     case type_char:
       ret = "Char";
@@ -137,6 +148,7 @@ public:
   virtual Json::Value print() = 0;
 };
 
+typedef std::vector<int> index_list;
 typedef std::vector<std::unique_ptr<ExprAST>> ast_list;
 // typedef std::vector<std::unique_ptr<DecExprAST>> dec_list;
 // typedef std::vector<std::unique_ptr<PrototypeAST>> proto_list;
@@ -194,7 +206,49 @@ public:
   Json::Value print() override;
 };
 
-/// FloatExprAST - Expression class for void.
+/// ArrayDecAST - For array declaration
+class ArrayDecAST : public ExprAST {
+  int size;
+  std::string Name;
+  ast_list idx_list;
+public:
+  ArrayDecAST(std::string name, index_list idx_list_in) : Name(name) {
+    size = 1;
+    for (int i=idx_list_in.size()-1;i>=0;i--){
+      size*=idx_list_in[i];
+      IntExprAST* tmp = new IntExprAST(idx_list_in[i]);
+      idx_list.push_back(std::unique_ptr<ExprAST>(tmp));
+    }
+    this->SetType(type_arrayDec);
+  }
+
+  ArrayDecAST(std::string name) : Name(name) {
+    size = -1;
+    this->SetType(type_arrayParam);
+  }
+
+  std::string getName() {return Name;}
+  ExprAST* getMaxIndex(int i) { return idx_list[i].get(); }
+  int getSize() {return size;}
+
+  llvm::Value *codegen() override;
+  Json::Value print() override;
+};
+
+/// ArrayEleAST - For array element access
+class ArrayEleAST : public ExprAST {
+  std::string Name;
+  ast_list idx_list;
+public:
+  ArrayEleAST(std::string name, ast_list idx_list) : Name(name), idx_list(std::move(idx_list)) { this->SetType(type_arrayEle); }
+
+  std::string getName() { return Name; }
+
+  llvm::Value *codegen() override;
+  Json::Value print() override;
+};
+
+/// VoidExprAST - Expression class for void.
 class VoidExprAST : public ExprAST {
 
 public:
@@ -246,8 +300,9 @@ public:
 class DecExprAST : public ExprAST{
   bool global;
   std::unique_ptr<VariableExprAST> Var;
+  std::unique_ptr<ArrayDecAST> Array;
   std::unique_ptr<TypeAST> Type;
-  std::string name;
+  std::string Name;
 
 public:
   DecExprAST(VariableExprAST* Var, 
@@ -256,11 +311,30 @@ public:
                assert(Var != nullptr);
                assert(Type != nullptr);
                Var->SetType(Type->getType());
+               Array = nullptr;
                this->SetType(type_Dec);
-               name = Var->getName();
+               Name = Var->getName();
              }
-  
-  std::string getName() {return name;}
+
+  DecExprAST(ArrayDecAST* Array, 
+             TypeAST* Type,
+             bool global) : Array(std::move(Array)), Type(std::move(Type)), global(global) {
+               assert(Array != nullptr);
+               assert(Type != nullptr);
+              //  Array->SetType(Type->getType());
+              // convert datatype in Type to ptr
+               if (Type->getType() == type_float){
+                 Type->SetType(type_floatptr);
+               }
+               else if(Type->getType() == type_int){
+                 Type->SetType(type_intptr);
+               }
+               Var = nullptr;
+               this->SetType(type_Dec);
+               Name = Array->getName();
+             }
+
+  std::string getName() {return Name;}
   
   int getDType() {return Type->getType();}
   VariableExprAST* getVar() {return Var.get();}
