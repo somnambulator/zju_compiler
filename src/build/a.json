@@ -8,10 +8,10 @@
 					"children" : 
 					[
 						{
-							"name" : "VariableExprAST: gi"
+							"name" : "ArrayDecAST: A, size:625"
 						},
 						{
-							"name" : "TypeAST: Int"
+							"name" : "TypeAST: IntPtr"
 						}
 					],
 					"name" : "DecExprAST"
@@ -26,10 +26,28 @@
 					"children" : 
 					[
 						{
-							"name" : "VariableExprAST: gf"
+							"name" : "ArrayDecAST: B, size:625"
 						},
 						{
-							"name" : "TypeAST: Float"
+							"name" : "TypeAST: IntPtr"
+						}
+					],
+					"name" : "DecExprAST"
+				}
+			],
+			"name" : "GlobalDecListAST"
+		},
+		{
+			"children" : 
+			[
+				{
+					"children" : 
+					[
+						{
+							"name" : "ArrayDecAST: C, size:625"
+						},
+						{
+							"name" : "TypeAST: IntPtr"
 						}
 					],
 					"name" : "DecExprAST"
@@ -59,22 +77,25 @@
 									"children" : 
 									[
 										{
-											"children" : 
-											[
-												{
-													"name" : "VariableExprAST: a"
-												},
-												{
-													"name" : "TypeAST: Int"
-												}
-											],
-											"name" : "DecExprAST"
+											"name" : "VariableExprAST: AM"
 										},
 										{
-											"name" : "IntExprAST: 1"
+											"name" : "TypeAST: Int"
 										}
 									],
-									"name" : "AssignExprAST :="
+									"name" : "DecExprAST"
+								},
+								{
+									"children" : 
+									[
+										{
+											"name" : "VariableExprAST: AN"
+										},
+										{
+											"name" : "TypeAST: Int"
+										}
+									],
+									"name" : "DecExprAST"
 								}
 							],
 							"name" : "DecListAST"
@@ -86,70 +107,136 @@
 									"children" : 
 									[
 										{
-											"children" : 
-											[
-												{
-													"children" : 
-													[
-														{
-															"name" : "VariableExprAST: b"
-														},
-														{
-															"name" : "TypeAST: Int"
-														}
-													],
-													"name" : "DecExprAST"
-												},
-												{
-													"name" : "IntExprAST: 1"
-												}
-											],
-											"name" : "AssignExprAST :="
-										}
-									],
-									"name" : "DecListAST"
-								},
-								{
-									"children" : 
-									[
-										{
-											"name" : "VariableExprAST: b"
-										}
-									],
-									"name" : "CallExprAST: print"
-								},
-								{
-									"name" : "VoidExprAST"
-								}
-							],
-							"name" : "BodyAST"
-						},
-						{
-							"children" : 
-							[
-								{
-									"name" : "VariableExprAST: a"
-								}
-							],
-							"name" : "CallExprAST: print"
-						},
-						{
-							"children" : 
-							[
-								{
-									"name" : "VariableExprAST: gi"
-								},
-								{
-									"children" : 
-									[
-										{
-											"name" : "VariableExprAST: gi"
+											"name" : "VariableExprAST: BM"
 										},
 										{
-											"name" : "IntExprAST: 7"
+											"name" : "TypeAST: Int"
 										}
 									],
-									"name" : "BinaryExprAST +"
+									"name" : "DecExprAST"
+								},
+								{
+									"children" : 
+									[
+										{
+											"name" : "VariableExprAST: BN"
+										},
+										{
+											"name" : "TypeAST: Int"
+										}
+									],
+									"name" : "DecExprAST"
+								}
+							],
+							"name" : "DecListAST"
+						},
+						{
+							"children" : 
+							[
+								{
+									"children" : 
+									[
+										{
+											"name" : "VariableExprAST: size_A"
+										},
+										{
+											"name" : "TypeAST: Int"
+										}
+									],
+									"name" : "DecExprAST"
+								},
+								{
+									"children" : 
+									[
+										{
+											"name" : "VariableExprAST: size_B"
+										},
+										{
+											"name" : "TypeAST: Int"
+										}
+									],
+									"name" : "DecExprAST"
+								}
+							],
+							"name" : "DecListAST"
+						},
+						{
+							"children" : 
+							[
+								{
+									"children" : 
+									[
+										{
+											"name" : "VariableExprAST: i"
+										},
+										{
+											"name" : "TypeAST: Int"
+										}
+									],
+									"name" : "DecExprAST"
+								},
+								{
+									"children" : 
+									[
+										{
+											"name" : "VariableExprAST: j"
+										},
+										{
+											"name" : "TypeAST: Int"
+										}
+									],
+									"name" : "DecExprAST"
+								},
+								{
+									"children" : 
+									[
+										{
+											"name" : "VariableExprAST: k"
+										},
+										{
+											"name" : "TypeAST: Int"
+										}
+									],
+									"name" : "DecExprAST"
+								}
+							],
+							"name" : "DecListAST"
+						},
+						{
+							"children" : 
+							[
+								{
+									"name" : "VariableExprAST: AM"
+								}
+							],
+							"name" : "CallExprAST: read"
+						},
+						{
+							"children" : 
+							[
+								{
+									"name" : "VariableExprAST: AN"
+								}
+							],
+							"name" : "CallExprAST: read"
+						},
+						{
+							"children" : 
+							[
+								{
+									"name" : "VariableExprAST: size_A"
+								},
+								{
+									"children" : 
+									[
+										{
+											"name" : "VariableExprAST: AM"
+										},
+										{
+											"name" : "VariableExprAST: AN"
+										}
+									],
+									"name" : "BinaryExprAST *"
 								}
 							],
 							"name" : "AssignExprAST :="
@@ -158,10 +245,82 @@
 							"children" : 
 							[
 								{
-									"name" : "VariableExprAST: gi"
+									"name" : "VariableExprAST: i"
+								},
+								{
+									"name" : "IntExprAST: 0"
+								},
+								{
+									"name" : "VariableExprAST: AM"
+								},
+								{
+									"name" : "IntExprAST: 1"
+								},
+								{
+									"children" : 
+									[
+										{
+											"children" : 
+											[
+												{
+													"name" : "VariableExprAST: j"
+												},
+												{
+													"name" : "IntExprAST: 0"
+												},
+												{
+													"name" : "VariableExprAST: AN"
+												},
+												{
+													"name" : "IntExprAST: 1"
+												},
+												{
+													"children" : 
+													[
+														{
+															"children" : 
+															[
+																{
+																	"name" : "ArrayEleAST: A"
+																}
+															],
+															"name" : "CallExprAST: read"
+														},
+														{
+															"name" : "VoidExprAST"
+														}
+													],
+													"name" : "BodyAST"
+												}
+											],
+											"name" : "ForExprAST"
+										},
+										{
+											"name" : "VoidExprAST"
+										}
+									],
+									"name" : "BodyAST"
 								}
 							],
-							"name" : "CallExprAST: print"
+							"name" : "ForExprAST"
+						},
+						{
+							"children" : 
+							[
+								{
+									"name" : "VariableExprAST: BM"
+								}
+							],
+							"name" : "CallExprAST: read"
+						},
+						{
+							"children" : 
+							[
+								{
+									"name" : "VariableExprAST: BN"
+								}
+							],
+							"name" : "CallExprAST: read"
 						},
 						{
 							"children" : 
@@ -170,16 +329,328 @@
 									"children" : 
 									[
 										{
-											"name" : "VariableExprAST: gf"
+											"name" : "VariableExprAST: AN"
 										},
 										{
-											"name" : "FloatExprAST: 7.700000"
+											"name" : "VariableExprAST: BM"
 										}
 									],
-									"name" : "BinaryExprAST +"
+									"name" : "BinaryExprAST !="
+								},
+								{
+									"children" : 
+									[
+										{
+											"children" : 
+											[
+												{
+													"name" : "StringExprAST"
+												}
+											],
+											"name" : "CallExprAST: print"
+										},
+										{
+											"name" : "VoidExprAST"
+										}
+									],
+									"name" : "BodyAST"
+								},
+								{
+									"name" : "VoidExprAST"
 								}
 							],
-							"name" : "CallExprAST: print"
+							"name" : "IfExprAST"
+						},
+						{
+							"children" : 
+							[
+								{
+									"name" : "VariableExprAST: i"
+								},
+								{
+									"name" : "IntExprAST: 0"
+								},
+								{
+									"name" : "VariableExprAST: BM"
+								},
+								{
+									"name" : "IntExprAST: 1"
+								},
+								{
+									"children" : 
+									[
+										{
+											"children" : 
+											[
+												{
+													"name" : "VariableExprAST: j"
+												},
+												{
+													"name" : "IntExprAST: 0"
+												},
+												{
+													"name" : "VariableExprAST: BN"
+												},
+												{
+													"name" : "IntExprAST: 1"
+												},
+												{
+													"children" : 
+													[
+														{
+															"children" : 
+															[
+																{
+																	"name" : "ArrayEleAST: B"
+																}
+															],
+															"name" : "CallExprAST: read"
+														},
+														{
+															"name" : "VoidExprAST"
+														}
+													],
+													"name" : "BodyAST"
+												}
+											],
+											"name" : "ForExprAST"
+										},
+										{
+											"name" : "VoidExprAST"
+										}
+									],
+									"name" : "BodyAST"
+								}
+							],
+							"name" : "ForExprAST"
+						},
+						{
+							"children" : 
+							[
+								{
+									"name" : "VariableExprAST: i"
+								},
+								{
+									"name" : "IntExprAST: 0"
+								},
+								{
+									"name" : "VariableExprAST: AM"
+								},
+								{
+									"name" : "IntExprAST: 1"
+								},
+								{
+									"children" : 
+									[
+										{
+											"children" : 
+											[
+												{
+													"name" : "VariableExprAST: j"
+												},
+												{
+													"name" : "IntExprAST: 0"
+												},
+												{
+													"name" : "VariableExprAST: BN"
+												},
+												{
+													"name" : "IntExprAST: 1"
+												},
+												{
+													"children" : 
+													[
+														{
+															"children" : 
+															[
+																{
+																	"name" : "ArrayEleAST: C"
+																},
+																{
+																	"name" : "IntExprAST: 0"
+																}
+															],
+															"name" : "AssignExprAST :="
+														},
+														{
+															"children" : 
+															[
+																{
+																	"name" : "VariableExprAST: k"
+																},
+																{
+																	"name" : "IntExprAST: 0"
+																},
+																{
+																	"name" : "VariableExprAST: AN"
+																},
+																{
+																	"name" : "IntExprAST: 1"
+																},
+																{
+																	"children" : 
+																	[
+																		{
+																			"children" : 
+																			[
+																				{
+																					"name" : "ArrayEleAST: C"
+																				},
+																				{
+																					"children" : 
+																					[
+																						{
+																							"name" : "ArrayEleAST: C"
+																						},
+																						{
+																							"children" : 
+																							[
+																								{
+																									"name" : "ArrayEleAST: A"
+																								},
+																								{
+																									"name" : "ArrayEleAST: B"
+																								}
+																							],
+																							"name" : "BinaryExprAST *"
+																						}
+																					],
+																					"name" : "BinaryExprAST +"
+																				}
+																			],
+																			"name" : "AssignExprAST :="
+																		},
+																		{
+																			"name" : "VoidExprAST"
+																		}
+																	],
+																	"name" : "BodyAST"
+																}
+															],
+															"name" : "ForExprAST"
+														},
+														{
+															"name" : "VoidExprAST"
+														}
+													],
+													"name" : "BodyAST"
+												}
+											],
+											"name" : "ForExprAST"
+										},
+										{
+											"name" : "VoidExprAST"
+										}
+									],
+									"name" : "BodyAST"
+								}
+							],
+							"name" : "ForExprAST"
+						},
+						{
+							"children" : 
+							[
+								{
+									"name" : "VariableExprAST: i"
+								},
+								{
+									"name" : "IntExprAST: 0"
+								},
+								{
+									"name" : "VariableExprAST: AM"
+								},
+								{
+									"name" : "IntExprAST: 1"
+								},
+								{
+									"children" : 
+									[
+										{
+											"children" : 
+											[
+												{
+													"name" : "VariableExprAST: j"
+												},
+												{
+													"name" : "IntExprAST: 0"
+												},
+												{
+													"name" : "VariableExprAST: BN"
+												},
+												{
+													"name" : "IntExprAST: 1"
+												},
+												{
+													"children" : 
+													[
+														{
+															"children" : 
+															[
+																{
+																	"children" : 
+																	[
+																		{
+																			"name" : "VariableExprAST: j"
+																		},
+																		{
+																			"children" : 
+																			[
+																				{
+																					"name" : "VariableExprAST: BN"
+																				},
+																				{
+																					"name" : "IntExprAST: 1"
+																				}
+																			],
+																			"name" : "BinaryExprAST -"
+																		}
+																	],
+																	"name" : "BinaryExprAST !="
+																},
+																{
+																	"children" : 
+																	[
+																		{
+																			"name" : "ArrayEleAST: C"
+																		},
+																		{
+																			"name" : "StringExprAST"
+																		}
+																	],
+																	"name" : "CallExprAST: print"
+																},
+																{
+																	"children" : 
+																	[
+																		{
+																			"name" : "ArrayEleAST: C"
+																		},
+																		{
+																			"name" : "StringExprAST"
+																		}
+																	],
+																	"name" : "CallExprAST: print"
+																}
+															],
+															"name" : "IfExprAST"
+														},
+														{
+															"name" : "VoidExprAST"
+														}
+													],
+													"name" : "BodyAST"
+												}
+											],
+											"name" : "ForExprAST"
+										},
+										{
+											"name" : "VoidExprAST"
+										}
+									],
+									"name" : "BodyAST"
+								}
+							],
+							"name" : "ForExprAST"
 						},
 						{
 							"name" : "VoidExprAST"

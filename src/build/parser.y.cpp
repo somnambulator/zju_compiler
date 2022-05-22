@@ -607,10 +607,10 @@ static const yytype_uint8 yyrline[] =
      111,   113,   114,   117,   129,   130,   132,   133,   136,   138,
      139,   141,   144,   145,   149,   153,   154,   156,   157,   163,
      164,   166,   167,   169,   170,   171,   172,   173,   174,   175,
-     176,   177,   179,   180,   181,   183,   184,   191,   192,   194,
-     195,   198,   201,   202,   203,   204,   205,   206,   207,   208,
-     209,   210,   211,   212,   213,   216,   217,   219,   220,   221,
-     222,   224,   225,   227,   228
+     176,   177,   179,   180,   181,   183,   184,   192,   193,   195,
+     196,   199,   202,   203,   204,   205,   206,   207,   208,   209,
+     210,   211,   212,   213,   214,   217,   218,   220,   221,   222,
+     223,   225,   226,   228,   229
 };
 #endif
 
@@ -1908,25 +1908,25 @@ yyreduce:
     break;
 
   case 47:
-#line 191 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 192 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = new ast_list(); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[0].exprAST))); }
 #line 1914 "parser.y.cpp"
     break;
 
   case 48:
-#line 192 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 193 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-2].exprAST))); }
 #line 1920 "parser.y.cpp"
     break;
 
   case 49:
-#line 194 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 195 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new DecExprAST((yyvsp[-2].variableexprAST), (yyvsp[0].typeAST), 0); (yyval.exprAST)->setLineno(yylineno); }
 #line 1926 "parser.y.cpp"
     break;
 
   case 50:
-#line 195 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 196 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { DecExprAST* var;
                                                               var = new DecExprAST((yyvsp[-4].variableexprAST), (yyvsp[-2].typeAST), 0); 
                                                               (yyval.exprAST) = new AssignExprAST(var, (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
@@ -1934,85 +1934,85 @@ yyreduce:
     break;
 
   case 51:
-#line 198 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 199 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new DecExprAST((yyvsp[-2].arraydecAST), (yyvsp[0].typeAST), 0); (yyval.exprAST)->setLineno(yylineno); }
 #line 1940 "parser.y.cpp"
     break;
 
   case 52:
-#line 201 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 202 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new AssignExprAST((yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
 #line 1946 "parser.y.cpp"
     break;
 
   case 53:
-#line 202 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 203 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
 #line 1952 "parser.y.cpp"
     break;
 
   case 54:
-#line 203 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 204 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
 #line 1958 "parser.y.cpp"
     break;
 
   case 55:
-#line 204 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 205 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
 #line 1964 "parser.y.cpp"
     break;
 
   case 56:
-#line 205 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 206 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
 #line 1970 "parser.y.cpp"
     break;
 
   case 57:
-#line 206 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 207 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
 #line 1976 "parser.y.cpp"
     break;
 
   case 58:
-#line 207 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 208 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
 #line 1982 "parser.y.cpp"
     break;
 
   case 59:
-#line 208 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 209 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), (yyvsp[-2].exprAST), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
 #line 1988 "parser.y.cpp"
     break;
 
   case 60:
-#line 209 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 210 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = (yyvsp[-1].exprAST); (yyval.exprAST)->setLineno(yylineno); }
 #line 1994 "parser.y.cpp"
     break;
 
   case 61:
-#line 210 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 211 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), new IntExprAST(0), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
 #line 2000 "parser.y.cpp"
     break;
 
   case 62:
-#line 211 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 212 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new BinaryExprAST(*(yyvsp[-1].op), new VoidExprAST(), (yyvsp[0].exprAST)); (yyval.exprAST)->setLineno(yylineno); }
 #line 2006 "parser.y.cpp"
     break;
 
   case 63:
-#line 212 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 213 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new CallExprAST(*(yyvsp[-3].name), std::move(*(yyvsp[-1].AST_list))); (yyval.exprAST)->setLineno(yylineno); }
 #line 2012 "parser.y.cpp"
     break;
 
   case 64:
-#line 213 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 214 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { ast_list* void_args; 
                                                               void_args = new ast_list();  
                                                               (yyval.exprAST) = new CallExprAST(*(yyvsp[-2].name), std::move(*void_args)); (yyval.exprAST)->setLineno(yylineno); }
@@ -2020,61 +2020,61 @@ yyreduce:
     break;
 
   case 65:
-#line 216 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 217 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new ArrayEleAST(*(yyvsp[-1].name), std::move(*(yyvsp[0].AST_list))); (yyval.exprAST)->setLineno(yylineno); }
 #line 2026 "parser.y.cpp"
     break;
 
   case 66:
-#line 217 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 218 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new ArrayDecAST(*(yyvsp[-2].name)); (yyval.exprAST)->setLineno(yylineno); }
 #line 2032 "parser.y.cpp"
     break;
 
   case 67:
-#line 219 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 220 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new VariableExprAST(*(yyvsp[0].name)); (yyval.exprAST)->setLineno(yylineno); }
 #line 2038 "parser.y.cpp"
     break;
 
   case 68:
-#line 220 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 221 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new IntExprAST((yyvsp[0].int_val)); (yyval.exprAST)->setLineno(yylineno); }
 #line 2044 "parser.y.cpp"
     break;
 
   case 69:
-#line 221 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 222 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new FloatExprAST((yyvsp[0].float_val)); (yyval.exprAST)->setLineno(yylineno); }
 #line 2050 "parser.y.cpp"
     break;
 
   case 70:
-#line 222 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 223 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.exprAST) = new StringExprAST(*(yyvsp[0].string_val)); (yyval.exprAST)->setLineno(yylineno); }
 #line 2056 "parser.y.cpp"
     break;
 
   case 71:
-#line 224 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 225 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-2].exprAST))); }
 #line 2062 "parser.y.cpp"
     break;
 
   case 72:
-#line 225 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 226 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = new ast_list(); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[0].exprAST))); }
 #line 2068 "parser.y.cpp"
     break;
 
   case 73:
-#line 227 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 228 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = new ast_list(); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-1].exprAST))); }
 #line 2074 "parser.y.cpp"
     break;
 
   case 74:
-#line 228 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 229 "/home/yuanli/zju_compiler/src/parser.ypp"
                                                             { (yyval.AST_list) = (yyvsp[0].AST_list); (yyval.AST_list)->push_back(std::unique_ptr<ExprAST>((yyvsp[-2].exprAST))); }
 #line 2080 "parser.y.cpp"
     break;
@@ -2318,7 +2318,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 230 "/home/yuanli/zju_compiler/src/parser.ypp"
+#line 231 "/home/yuanli/zju_compiler/src/parser.ypp"
 
 
 /* void yyerror(char* msg){

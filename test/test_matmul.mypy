@@ -3,7 +3,6 @@ B[25][25]:int;
 C[25][25]:int;
 
 def main()->void:{
-
     AM:int, AN:int;
     BM:int, BN:int;
     size_A:int, size_B:int;
@@ -14,50 +13,30 @@ def main()->void:{
     size_A := AM*AN;
     # read matrix
     for i in range(0,AM):{
-    
-    
         for j in range(0,AN):{
-        
-        
             read(A[i][j]);
         }
     }
     read(BM);
     read(BN);
     if(AN != BM):{
-    
-    
         print("Incompatible Dimensions");
     }
     for i in range(0,BM):{
-    
-    
         for j in range(0,BN):{
-        
-        
             read(B[i][j]);
         }
     }
     for i in range(0,AM):{
-    
-    
         for j in range(0,BN):{
-        
-        
             C[i][j]:=0;
             for k in range(0,AN):{
-            
-            
                 C[i][j]:=C[i][j]+A[i][k]*B[k][j];
             }
         }
     }
     for i in range(0,AM):{
-    
-    
         for j in range(0,BN):{
-        
-        
             if(j!=BN-1): print(C[i][j]," ");
             else: print(C[i][j], "\n");
         }

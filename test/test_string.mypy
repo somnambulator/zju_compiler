@@ -1,12 +1,10 @@
 b:string;
 
 def main()->void:{
-
     a:string; 
-
-    print("hello world!");
-    a:="hello!";
-    b:="hello global!";
+    print("hello world!\n");
+    a:="hello!\n";
+    b:="hello global!\n";
     print(a);
     print(b);
     b:=a;
