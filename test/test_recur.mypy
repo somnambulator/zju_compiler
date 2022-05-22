@@ -1,27 +1,27 @@
 def fib(a:int)->int: {
-var
 
-stmt
+
+
     if(a == 1): {
-    var
-    stmt
+    
+    
         return 1;
     } elif(a == 2): {
-    var
-    stmt
+    
+    
         return 2;
     }
     else :{
-    var
-    stmt
+    
+    
         return fib(a-1)+fib(a-2);
     }
 }
 
 def main() -> int: {
-var
+
     a:int := 10;
-stmt
+
     print(fib(a));
     return 0;
 }

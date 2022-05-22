@@ -1,7 +1,7 @@
 def main()->int:{
-var
+
     a[10]:int;
-stmt
+
     read(a[2]);
     print(a[2]);    
 }

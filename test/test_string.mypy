@@ -1,9 +1,9 @@
 b:string;
 
 def main()->void:{
-var
-    a:string;
-stmt
+
+    a:string; 
+
     print("hello world!");
     a:="hello!";
     b:="hello global!";

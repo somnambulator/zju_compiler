@@ -1,8 +1,6 @@
-def main()->int:{
-var    
+def main()->int:{  
     a:int:=1;
-stmt
     a:=1+1;
-    print(a);
+    print(a, "\n");
     return 0;
 }

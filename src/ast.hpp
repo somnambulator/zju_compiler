@@ -59,10 +59,6 @@
 #define type_for 113
 #define type_while 114
 
-static llvm::LLVMContext TheContext;
-static llvm::IRBuilder<> Builder(TheContext);
-static std::unique_ptr<llvm::Module> TheModule;
-
 /// ExprAST - Base class for all expression nodes.
 class ExprAST {
   int type;
@@ -537,6 +533,23 @@ public:
           HasReturn = 0;
           RetType = 0;
         }
+  BodyAST(ast_list StmtList,
+          ExprAST* ReturnExpr)
+      : StmtList(std::move(StmtList)), ReturnExpr(ReturnExpr) {
+          assert(ReturnExpr!=nullptr);
+          this->SetType(type_FuncBody);
+          HasReturn = 1;
+          RetType = 0;
+        }
+  BodyAST(ast_list StmtList)
+      : StmtList(std::move(StmtList)), ReturnExpr(new VoidExprAST()) {
+          assert(ReturnExpr!=nullptr);
+          this->SetType(type_FuncBody);
+          HasReturn = 0;
+          RetType = 0;
+        }
+
+
   
   void setReturn(bool ret) { HasReturn=ret; }
   bool hasReturn() { return HasReturn; }

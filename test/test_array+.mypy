@@ -1,24 +1,24 @@
 def foo(a[]:int)->void:{
-var
+
     i:int;
-stmt
+
     for i in range(0,10):{
-    var
-    stmt
+    
+    
         a[i] := i+1;
         print("in foo: a[",i,"]=",a[i]);
     }
 }
 
 def main()->int:{
-var
+
     a[10]:int;
     i:int;
-stmt
+
     foo(a[]);
     for i in range(0,10):{
-    var
-    stmt
+    
+    
         a[i] := a[i]+1;
         print("in main: a[",i,"]=",a[i]);
     }

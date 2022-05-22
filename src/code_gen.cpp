@@ -1107,9 +1107,9 @@ llvm::Value *BodyAST::codegen() {
   // add new variable field into symboltable
   symbolTable.pushIDTable();
   symbolTable.pushNamedValue();
-  for (int i=DefList.size()-1;i>=0;i--){
-    DefList[i]->codegen();
-  }
+  // for (int i=DefList.size()-1;i>=0;i--){
+  //   DefList[i]->codegen();
+  // }
   for (int i=StmtList.size()-1;i>=0;i--){
     // tell the type of stmt
     StmtList[i]->codegen();
@@ -1211,6 +1211,7 @@ llvm::Function *FunctionAST::codegen() {
 
       // Validate the generated code, checking for consistency.
       llvm::verifyFunction(*TheFunction);
+      // TheFPM->run(*TheFunction);
       // pop variable field from symboltable
       symbolTable.popIDTable();
       symbolTable.popNamedValue();
@@ -1221,17 +1222,10 @@ llvm::Function *FunctionAST::codegen() {
   else{
     Body->codegen();
     // Validate the generated code, checking for consistency.
-    llvm::verifyFunction(*TheFunction);
+    
     Builder.CreateRet(nullptr);
-    // insert new block
-    // llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
-    // llvm::BasicBlock *afterRetBB = llvm::BasicBlock::Create(TheContext, "after_ret");
-    // TheFunction->getBasicBlockList().push_back(afterRetBB);
-    // Builder.SetInsertPoint(afterRetBB);
-
-    // IntExprAST* intexpr = new IntExprAST(0);
-    // BinaryExprAST* placeholder = new BinaryExprAST("+", intexpr, intexpr);
-    // placeholder->codegen();
+    llvm::verifyFunction(*TheFunction);
+    // TheFPM->run(*TheFunction);
     
     // pop variable field from symboltable
     symbolTable.popIDTable();
@@ -1254,6 +1248,19 @@ llvm::Function *FunctionAST::codegen() {
 std::string ProgramAST::codegen(){
   // for C++ 14
   TheModule = std::make_unique<llvm::Module>("Code Gen", TheContext);
+
+  // // Create a new pass manager attached to it.
+  // TheFPM = std::make_unique<llvm::legacy::FunctionPassManager>(TheModule.get());
+  // // Do simple "peephole" optimizations and bit-twiddling optzns.
+  // // TheFPM->add(llvm::createInstructionCombiningPass());
+  // // Reassociate expressions.
+  // TheFPM->add(llvm::createReassociatePass());
+  // // Eliminate Common SubExpressions.
+  // TheFPM->add(llvm::createGVNPass());
+  // // Simplify the control flow graph (deleting unreachable blocks, etc).
+  // TheFPM->add(llvm::createCFGSimplificationPass());
+
+  // TheFPM->doInitialization();
 
   for(int i=ElementList.size()-1;i>=0;i--){
     ElementList[i]->codegen();

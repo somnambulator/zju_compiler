@@ -23,6 +23,11 @@
 std::unique_ptr<ExprAST> LogError(const std::string& Str);
 llvm::Value *LogErrorV(const std::string& Str);
 
+static llvm::LLVMContext TheContext;
+static llvm::IRBuilder<> Builder(TheContext);
+static std::unique_ptr<llvm::Module> TheModule;
+static std::unique_ptr<llvm::legacy::FunctionPassManager> TheFPM;
+
 class SymbolTable {
     std::vector<std::map<std::string, llvm::Value *>*> NamedValues; //stack, for local variables
     std::map<std::string, llvm::GlobalVariable *> GlobalNamedValues;

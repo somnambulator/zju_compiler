@@ -1,30 +1,30 @@
 def partition(a[]:int, low:int, high:int)->int:{
-var
+
     key:int;
-stmt
+
     key:=a[low];
     while(low < high):{
-    var
-    stmt
+    
+    
         while((low<high) && (a[high] >= key)):{
-        var
-        stmt
+        
+        
             high:=high-1;
         }
         if(low<high):{
-        var
-        stmt
+        
+        
             a[low]:=a[high];
             low:=low+1;
         }
         while((low<high) && (a[low]<=key)):{
-        var
-        stmt
+        
+        
             low:=low+1;
         }
         if(low < high):{
-        var
-        stmt
+        
+        
             a[high]:=a[low];
             high:=high-1;
         }
@@ -34,12 +34,12 @@ stmt
 }
 
 def quicksort(a[]:int, start:int, end:int)->int:{
-var
+
     pos:int;
-stmt
+
     if(start < end):{
-    var
-    stmt
+    
+    
         pos:=partition(a[], start, end);
         quicksort(a[], start, pos-1);
         quicksort(a[], pos+1, end);
@@ -48,28 +48,28 @@ stmt
 }
 
 def main()->int:{
-var
+
     i:int, j:int, n:int;
     a[10000]:int;
-stmt
+
     print("Please enter n:\n");
     read(n);
     if(n==0):{
-    var
-    stmt
+    
+    
         return 0;
     }
     print("Please enter the array:\n");
     for i in range(0, n):{
-    var
-    stmt
+    
+    
         read(a[i]);
     }
     quicksort(a[], 0, n-1);
     print("The result is:\n");
     for i in range(0,n):{
-    var
-    stmt
+    
+    
         print(a[i],"\n");
     }
 }

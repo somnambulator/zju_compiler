@@ -1,11 +1,11 @@
 def main()->int:{
-var
+
     a[10]:int;
     i:int;
-stmt
+
     for i in range(0,10):{
-    var
-    stmt
+    
+    
         a[i] := i;
         println("a[",i,"]=",a[i]);
     }

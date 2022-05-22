@@ -1,10 +1,10 @@
 def main()->void:{
-var
+
     i:int;
-stmt
+
     for i in range(0,10):{
-    var
-    stmt
+    
+    
         print("in for: ", i);
     }
 }

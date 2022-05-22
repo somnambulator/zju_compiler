@@ -65,7 +65,7 @@ COMMENT "#".*
 %%
 
 {ws}+ { ; }
-\n|\r { ; }
+\n|\r { yycolumn = 0; }
 {IF} { yylval.Str = new std::string(yytext); return IF;}
 {ELIF} { yylval.Str = new std::string(yytext); return ELIF;}
 {ELSE} { yylval.Str = new std::string(yytext); return ELSE; }

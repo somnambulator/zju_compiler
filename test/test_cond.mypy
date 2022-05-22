@@ -1,14 +1,14 @@
 def main() -> int: {
-var
+
     a:int := 0, b:float:=1.234;
-stmt
+
     if(a == 1):{
-    var
-    stmt
+    
+    
         a := 1;
     } else : {
-    var
-    stmt
+    
+    
         a := 2;
     }
     print(a, b);

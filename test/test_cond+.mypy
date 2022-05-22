@@ -1,22 +1,22 @@
 def foo() -> int: {
-var
+
     a:int := 0;
-stmt
+
     if(a == 1):{
-    var
-    stmt
+    
+    
         print(1);
         return 1;
     } else : {
-    var
-    stmt
+    
+    
         print(2);
         return 2;
     }
 }
 
 def main()-> void :{
-var
-stmt
+
+
     print(foo());
 }

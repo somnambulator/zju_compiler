@@ -104,13 +104,11 @@ ExtDefList:         ExtDef ExtDefList                       { $$ = $2; $$->push_
 ExtDef:             ExtDecList SEMI                         { $$ = new GlobalDecListAST(std::move(*$1)); $$->setLineno(yylineno); }
     /* |               Specifier SEMI                          {  } */
     |               DEF FunDec COLON CompSt                 { $$ = new FunctionAST($2, $4); $$->setLineno(yylineno); }
-    |               error SEMI                              { printf("[Parser]Error in ExtDef\n"); }
     ; 
 MainDef:            DEF MainFunDec COLON CompSt             { $$ = new FunctionAST($2, $4); $$->setLineno(yylineno); }
-    |               error SEMI                              { printf("[Parser]Error in MainDef\n"); }
     ;
 ExtDecList:         ExtDec                                  { $$ = new ast_list(); $$->push_back(std::unique_ptr<ExprAST>($1)); }
-    |               ExtDec COLON Specifier COMMA ExtDecList { $$ = $5; $$->push_back(std::unique_ptr<ExprAST>($1)); }
+    |               ExtDec COMMA ExtDecList                 { $$ = $3; $$->push_back(std::unique_ptr<ExprAST>($1)); }
     ; 
 ExtDec:             VarDec COLON Specifier                  { $$ = new DecExprAST($1, $3, 1); $$->setLineno(yylineno); }
     |               ExtArrayDec COLON Specifier             { $$ = new DecExprAST($1, $3, 1); $$->setLineno(yylineno); }
@@ -147,12 +145,10 @@ FunDec:             ID LP VarList RP FUNCSPEC Specifier     { $$ = new Prototype
     |               ID LP RP FUNCSPEC Specifier             { ast_list* void_args; 
                                                               void_args = new ast_list(); 
                                                               $$ = new PrototypeAST($5, *$1, std::move(*void_args)); $$->setLineno(yylineno); }
-    |               error RP                                { printf("[Parser]Error in FunDec\n"); }
     ; 
 MainFunDec:         MAIN LP RP FUNCSPEC Specifier           { ast_list* void_args; 
                                                               void_args = new ast_list(); 
                                                               $$ = new PrototypeAST($5, std::string("main"), std::move(*void_args)); $$->setLineno(yylineno); }
-    |               error RP                                { printf("[Parser]Error in MainFunDec\n"); }
     ; 
 VarList:            ParamDec COMMA VarList                  { $$ = $3; $$->push_back(std::unique_ptr<ExprAST>($1)); }
     |               ParamDec                                { $$ = new ast_list(); $$->push_back(std::unique_ptr<ExprAST>($1)); }
@@ -161,14 +157,17 @@ ParamDec:           VarDec COLON Specifier                  { $$ = new DecExprAS
     |               ArrayDec COLON Specifier                { $$ = new DecExprAST($1, $3, 0); $$->setLineno(yylineno); }
     ; 
 // Statements
-CompSt:             LC VAR DefList STMT StmtList RC         { $$ = new BodyAST(std::move(*$3), std::move(*$5)); $$->setLineno(yylineno); }
+/* CompSt:             LC VAR DefList STMT StmtList RC         { $$ = new BodyAST(std::move(*$3), std::move(*$5)); $$->setLineno(yylineno); }
     |               LC VAR DefList STMT StmtList ReturnStmt RC { $$ = new BodyAST(std::move(*$3), std::move(*$5), $6); $$->setLineno(yylineno); }
-    |               error RC                                { printf("[Parser]Error in CompSt\n"); }
+    ;  */
+CompSt:             LC StmtList RC         { $$ = new BodyAST(std::move(*$2)); $$->setLineno(yylineno); }
+    |               LC StmtList ReturnStmt RC { $$ = new BodyAST(std::move(*$2), $3); $$->setLineno(yylineno); }
     ; 
 StmtList:           Stmt StmtList                           { $$ = $2; $$->push_back(std::unique_ptr<ExprAST>($1)); }
     |                                                       { $$ = new ast_list(); }
     ; 
 Stmt:               Exp SEMI                                { $$ = $1; $$->setLineno(yylineno); }
+    |               DecList SEMI                            { $$ = new DecListAST(std::move(*$1)); $$->setLineno(yylineno); }
     |               CompSt                                  { $$ = $1; $$->setLineno(yylineno); }   
     |               IF LP Exp RP COLON Stmt %prec LOWER_THAN_ELSE               { $$ = new IfExprAST($3, $6); $$->setLineno(yylineno); }
     |               IF LP Exp RP COLON Stmt ELIFStmt %prec LOWER_THAN_ELSE      { $$ = new IfExprAST($3, $6, $7); $$->setLineno(yylineno); }
@@ -176,7 +175,6 @@ Stmt:               Exp SEMI                                { $$ = $1; $$->setLi
     |               WHILE LP Exp RP COLON Stmt                                      { $$ = new WhileExprAST($3, $6); $$->setLineno(yylineno); }
     |               FOR VarDec IN RANGE LP Exp COMMA Exp COMMA Exp RP COLON Stmt    { $$ = new ForExprAST($2, $6, $8, $10, $13); $$->setLineno(yylineno); }
     |               FOR VarDec IN RANGE LP Exp COMMA Exp RP COLON Stmt              { $$ = new ForExprAST($2, $6, $8, $11); $$->setLineno(yylineno); } 
-    |               error SEMI                              { printf("[Parser]Error in Stmt\n"); }
     ; 
 ELIFStmt:           ELIF LP Exp RP COLON Stmt ELIFStmt %prec LOWER_THAN_ELSE { $$ = new IfExprAST($3, $6, $7); $$->setLineno(yylineno); }
     |               ELIF LP Exp RP COLON Stmt %prec LOWER_THAN_ELSE { $$ = new IfExprAST($3, $6); $$->setLineno(yylineno); }
