@@ -897,7 +897,7 @@ llvm::Value *BinaryExprAST::codegen() {
   }
 }
 
-llvm::Value* FuncPrint(int lineno, ast_list Args, bool newline){
+llvm::Value* FuncPrint(int lineno, ast_list Args){
   static llvm::Function *printFunc = nullptr;
   // not defined before
   if(!printFunc){
@@ -964,9 +964,9 @@ llvm::Value* FuncPrint(int lineno, ast_list Args, bool newline){
       return LogErrorV(lineno, std::string("Wrong type for print"));
     }
   }
-  if(newline){
-    format += "\n";
-  }
+  // if(newline){
+  //   format += "\n";
+  // }
 
   printArgs[0] = Builder.CreateGlobalStringPtr(format, "printfomat");
   return Builder.CreateCall(printFunc, printArgs, "printtmp");
@@ -1040,10 +1040,7 @@ llvm::Value* FuncRead(int lineno, ast_list Args){
 
 llvm::Value *CallExprAST::codegen() {
   if (Callee == "print"){
-    return FuncPrint(this->getLineno(), std::move(Args), 0);
-  }
-  if (Callee == "println"){
-    return FuncPrint(this->getLineno(), std::move(Args), 1);
+    return FuncPrint(this->getLineno(), std::move(Args));
   }
   if (Callee == "read"){
     return FuncRead(this->getLineno(), std::move(Args));

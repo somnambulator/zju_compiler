@@ -1,4 +1,4 @@
-def foo() -> void: {
+def foo() -> int: {
 var
     a:int := 0;
 stmt
@@ -6,12 +6,12 @@ stmt
     var
     stmt
         print(1);
-        return ;
+        return 1;
     } else : {
     var
     stmt
         print(2);
-        return ;
+        return 2;
     }
 }
 

@@ -195,7 +195,36 @@ class StringExprAST : public ExprAST {
 
 public:
   StringExprAST(std::string InStr) {
-      Str = InStr.substr(1,InStr.length()-2);
+      std::string filter;
+      for(int i=0;i<InStr.size();i++){
+        if(InStr[i]=='\\'){
+          switch (InStr[i+1])
+          {
+          case 'n':
+            filter.push_back('\n');
+            i++;
+            break;
+          case 'r':
+            filter.push_back('\r');
+            i++;
+            break;
+          case 't':
+            filter.push_back('\t');
+            i++;
+            break;
+          case 'a':
+            filter.push_back('\a');
+            i++;
+            break;
+          default:
+            filter.push_back('\\');
+            break;
+          }
+          continue;
+        }
+        filter.push_back(InStr[i]);
+      }
+      Str = filter.substr(1,filter.length()-2);
       this->SetType(type_string);
       global = 0;
     }

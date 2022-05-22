@@ -1,0 +1,7 @@
+def main()->int:{
+var
+    a:string;
+stmt
+    read(a);
+    print(a);    
+}

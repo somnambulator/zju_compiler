@@ -1,0 +1,64 @@
+A[25][25]:int;
+B[25][25]:int;
+C[25][25]:int;
+
+def main()->void:{
+var
+    AM:int, AN:int;
+    BM:int, BN:int;
+    size_A:int, size_B:int;
+    i:int, j:int, k:int;
+stmt
+    read(AM);
+    read(AN);
+    size_A := AM*AN;
+    for i in range(0,AM):{
+    var
+    stmt
+        for j in range(0,AN):{
+        var
+        stmt
+            read(A[i][j]);
+        }
+    }
+    read(BM);
+    read(BN);
+    if(AN != BM):{
+    var
+    stmt
+        println("Incompatible Dimensions");
+    }
+    for i in range(0,BM):{
+    var
+    stmt
+        for j in range(0,BN):{
+        var
+        stmt
+            read(B[i][j]);
+        }
+    }
+    for i in range(0,AM):{
+    var
+    stmt
+        for j in range(0,BN):{
+        var
+        stmt
+            C[i][j]:=0;
+            for k in range(0,AN):{
+            var
+            stmt
+                C[i][j]:=C[i][j]+A[i][k]*B[k][j];
+            }
+        }
+    }
+    for i in range(0,AM):{
+    var
+    stmt
+        for j in range(0,BN):{
+        var
+        stmt
+            if(j!=BN-1): print(C[i][j]," ");
+            else: print(C[i][j], "\n");
+        }
+    }
+}

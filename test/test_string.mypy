@@ -9,4 +9,6 @@ stmt
     b:="hello global!";
     print(a);
     print(b);
+    b:=a;
+    print(b);
 }
