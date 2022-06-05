@@ -13,16 +13,18 @@ llvm::Value *LogErrorV(int lineno, const std::string& Str) {
   return nullptr;
 }
 
-llvm::Type *typeGen(int type){
+llvm::Type *typeGen(int type, std::string* name=nullptr){
   static llvm::Type* Type_String = nullptr;
-  if(!Type_String){
-    char buffer[256];
-    memset(buffer, 0, 256);
-    llvm::StringRef bufferRef(buffer, 255);
-    llvm::Constant *strname = llvm::ConstantDataArray::getString(TheContext, bufferRef);
-    TheModule->getOrInsertGlobal("strtype", strname->getType());
-    llvm::GlobalVariable *gVar = TheModule->getNamedGlobal("strtype");
-    Type_String = gVar->getType();
+  if (type == type_string) { 
+    if(!Type_String){
+      char buffer[256];
+      memset(buffer, 0, 256);
+      llvm::StringRef bufferRef(buffer, 255);
+      llvm::Constant *strname = llvm::ConstantDataArray::getString(TheContext, bufferRef);
+      TheModule->getOrInsertGlobal("strtype", strname->getType());
+      llvm::GlobalVariable *gVar = TheModule->getNamedGlobal("strtype");
+      Type_String = gVar->getType();
+    }
   }
   switch (type){
     case type_void:
@@ -43,6 +45,8 @@ llvm::Type *typeGen(int type){
       return llvm::Type::getDoublePtrTy(TheContext);
     case type_string:
       return Type_String;
+    case type_struct:
+      return symbolTable.FindStruct(*name)->getStructType();
     default:
       return llvm::Type::getInt32Ty(TheContext);
   }
@@ -66,10 +70,10 @@ llvm::Function *getFunction(std::string Name) {
 /// CreateEntryBlockAlloca - Create an alloca instruction in the entry block of
 /// the function.  This is used for mutable variables etc.
 static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction,
-                                          const std::string &VarName, int dType) {
+                                          const std::string &VarName, int dType, std::string* typeName = nullptr) {
   llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
                    TheFunction->getEntryBlock().begin());
-  return TmpB.CreateAlloca(typeGen(dType), nullptr, VarName);
+  return TmpB.CreateAlloca(typeGen(dType, typeName), nullptr, VarName);
 }
 
 static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction,
@@ -313,6 +317,7 @@ llvm::Value *DecExprAST::codegen(){
     llvm::Function* Func = Builder.GetInsertBlock()->getParent();
     const std::string &VarName = Name;
     int dType = Type->getType();
+    std::string* typeName = Type->getNamePtr();
     //First check redefinition
     if (! symbolTable._FindValue(VarName)){
       symbolTable.addLocalID(VarName, getDType());
@@ -332,7 +337,7 @@ llvm::Value *DecExprAST::codegen(){
           return LogErrorV(this->getLineno(), std::string("Fail to generate array!"));
         }
         // convert ptr into bytewise
-        arrayptr = Builder.CreateBitCast(arrayptr, typeGen(dType), "ElementwiseAddr"); // create element wise ptr like i32* rather than ptr like [n*i32]*
+        arrayptr = Builder.CreateBitCast(arrayptr, typeGen(dType, typeName), "ElementwiseAddr"); // create element wise ptr like i32* rather than ptr like [n*i32]*
         
         symbolTable.addLocalID(VarName, dType);
         symbolTable.addLocalVal(VarName, arrayptr);
@@ -362,6 +367,8 @@ llvm::Value *DecExprAST::codegen(){
     case type_string:
       InitVal = CreateStringMem(bufferRef);
       break;
+    case type_struct:
+      break;
     default:
       // ERROR
       LogErrorV(this->getLineno(), std::string("Unknown type!"));
@@ -373,11 +380,15 @@ llvm::Value *DecExprAST::codegen(){
       Builder.CreateStore(InitVal, Alloca);
       symbolTable.addLocalVal(VarName, Alloca);
       return Alloca;
-    }
-    else if(dType == type_string){
+    } else if(dType == type_string){
       // no need to store, since string is a global variable
       symbolTable.addLocalVal(VarName, InitVal);
       return InitVal;
+    } else if(dType == type_struct) {
+      llvm::AllocaInst *Alloca = CreateEntryBlockAlloca(Func, VarName, dType, typeName);
+      symbolTable.addLocalVal(VarName, Alloca);
+      auto* structAST = symbolTable.FindStruct(*typeName);
+      symbolTable.mapStruct(VarName, structAST);
     }
     return nullptr;
   }
@@ -658,6 +669,11 @@ llvm::Value *AssignExprAST::codegen(){
       LType = type_float;
     }
   }
+  else if(LHS->getType() == type_structEle) {
+    auto* tmp = static_cast<StructEleAST*>(LHS.get());
+    LHSAddr = tmp->codegen();
+    LType = tmp->getEleType();
+  }
   else{
     std::string err = "Wrong LHS type: "+VarName+" !";
     return LogErrorV(this->getLineno(), err);
@@ -936,6 +952,13 @@ llvm::Value* FuncPrint(int lineno, ast_list Args){
       new_arg = Builder.CreateLoad(new_arg, "arrayelement");
       // type = symbolTable.getType(static_cast<ArrayEleAST*>(Args[i].get())->getName());
       type = Args[i]->getType();
+    }
+    else if(type == type_structEle) {
+      // for struct elements
+      auto* tmp = static_cast<StructEleAST*>(Args[i].get());
+      new_arg = tmp->codegen();
+      new_arg = Builder.CreateLoad(new_arg, "structelement");
+      type = tmp->getEleType();
     }
     else if(type > 0 && type <= type_float){
       // for numbers or bools
@@ -1243,6 +1266,81 @@ llvm::Function *FunctionAST::codegen() {
   std::string err = "Fail to generate body for function "+Proto->getName();
   LogErrorV(this->getLineno(), err);
   return nullptr;
+}
+
+llvm::Value* StructAST::codegen() {
+  /*
+  Code generation for struct declartion ast.
+  Two tasks:
+  -> add struct type into symbol table.
+  -> generate llvm struct type code.
+  */
+  llvm::ArrayRef<llvm::Type*> StructFields(this->MemberTypes);
+  auto* StructTy = llvm::StructType::create(TheContext, StructFields, this->Name, false);
+  this->setStructType(StructTy);
+
+  // symbol table
+  auto* structSymbol = symbolTable.FindStruct(this->Name);
+  if(structSymbol!=nullptr){
+    std::string err = "Redefinition of struct "+this->Name;
+    LogErrorV(this->getLineno(), err);
+    return nullptr;
+  }
+  else{
+    symbolTable.addStruct(this->Name, this);
+  }
+}
+
+llvm::Value* StructEleAST::codegen() {
+  auto* base_addr = symbolTable.FindValue(this->Name);
+  if(base_addr==nullptr){
+    std::string err = "Undefined variable "+this->Name;
+    LogErrorV(this->getLineno(), err);
+    return nullptr;
+  }
+  auto* struct_def = symbolTable.FindStructDec(this->Name);
+  if(struct_def==nullptr){
+    std::string err = "Undefined struct "+this->Name;
+    LogErrorV(this->getLineno(), err);
+    return nullptr;
+  }
+  auto* st_type = struct_def->getStructType();
+  auto* memberNames = struct_def->getMemberNames();
+  auto it = std::find(memberNames->begin(), memberNames->end(), this->eleName);
+  if(it == memberNames->end()){
+    std::string err = "Undefined member "+this->eleName+" in struct "+this->Name;
+    LogErrorV(this->getLineno(), err);
+    return nullptr;
+  }
+  auto indice = it - memberNames->begin();
+  auto type = struct_def->getMemberTypes()[indice];
+  this->eleType = type;
+  auto indice_llvm = llvm::ConstantInt::get(typeGen(type_int), indice, false);
+  auto indice_zero = llvm::ConstantInt::get(typeGen(type_int), 0, false);
+  std::vector<llvm::Value*> indices_vec;
+  indices_vec.push_back(indice_zero);
+  indices_vec.push_back(indice_llvm);
+  llvm::ArrayRef<llvm::Value*> indices(indices_vec);
+  // auto* gep_inst = llvm::GetElementPtrInst::Create(st_type, base_addr, indices, "struct_ele");
+  auto* value = Builder.CreateGEP(st_type, base_addr, indices, "struct_ele");
+  return value;
+  // int indice = struct_def->getMemberNames()->indexOf(this->eleName);
+  // auto* gep_inst =  
+}
+
+
+StructAST::StructAST(std::string *Name, st_ast_list* Members) : Name(*Name) {
+  for(int i = 0; i < 2; i++) {
+    std::cout << "Start Constructing StructAST" << std::endl;
+  }
+  this->SetType(type_structDec);
+  for(auto& member: *Members) {
+    auto* member_dec = static_cast<DecExprAST*>(member);
+    MemberNames.push_back(member_dec->getName()); 
+    MemberTypes.push_back(typeGen(member_dec->getDType()));
+    MemberTypesInt.push_back(member_dec->getDType());
+  }
+  std::cout << "End Constructing StructAST" << std::endl;
 }
 
 std::string ProgramAST::codegen(){

@@ -37,8 +37,11 @@ class SymbolTable {
 
     std::map<std::string, ArrayDecAST *> ArrayTable; //stack, for local variables
     // std::map<std::string, llvm::GlobalVariable *> GlobalArrayAddr;
+    std::map<std::string, StructAST* > VarStructTable;
 
     std::map<std::string, PrototypeAST *> PrototypeTable; 
+
+    std::map<std::string, StructAST*> StructTable;
 
 public:
 
@@ -138,6 +141,28 @@ public:
     ArrayDecAST* FindArray(std::string name) {
         if(ArrayTable.find(name) != ArrayTable.end()){
             return ArrayTable[name];
+        }
+        return nullptr;
+    }
+
+    StructAST* FindStruct(std::string name) {
+        if(StructTable.find(name) != StructTable.end()){
+            return StructTable[name];
+        }
+        return nullptr;
+    }
+
+    void addStruct(std::string name, StructAST* structdec){
+        StructTable[name] = structdec;
+    }
+
+    void mapStruct(std::string name, StructAST* structdec){
+        VarStructTable[name] = structdec;
+    }
+
+    StructAST* FindStructDec(std::string name) {
+        if(VarStructTable.find(name) != VarStructTable.end()){
+            return VarStructTable[name];
         }
         return nullptr;
     }

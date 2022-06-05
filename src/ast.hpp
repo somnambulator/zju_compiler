@@ -42,6 +42,8 @@
 #define type_arrayEle 10
 #define type_arrayDec 11
 #define type_arrayParam 12
+#define type_struct 13
+#define type_structEle 14
 
 #define type_ID 100
 #define type_binaryExpr 101
@@ -58,6 +60,7 @@
 #define type_ifelse 112
 #define type_for 113
 #define type_while 114
+#define type_structDec 115
 
 /// ExprAST - Base class for all expression nodes.
 class ExprAST {
@@ -125,6 +128,9 @@ public:
     case type_string:
       ret = "String";
       break;
+    case type_struct:
+      ret = "Struct";
+      break;
     default:
       ret = "Unknown Type";
       break;
@@ -146,17 +152,31 @@ public:
 
 typedef std::vector<int> index_list;
 typedef std::vector<std::unique_ptr<ExprAST>> ast_list;
+typedef std::vector<ExprAST*> st_ast_list;
 // typedef std::vector<std::unique_ptr<DecExprAST>> dec_list;
 // typedef std::vector<std::unique_ptr<PrototypeAST>> proto_list;
 // typedef std::vector<std::unique_ptr<FunctionAST>> func_list;
 
 /// TypeAST - Expression class for different types.
 class TypeAST : public ExprAST {
+
+std::string name;
   
 public:
   TypeAST(const std::string &TypeName) {
+    std::cout << "Construct simple type" << std::endl;
     this->SetTypeStr(TypeName);
+    this->name = TypeName;
   }
+
+  TypeAST(const std::string &TypeName, bool flag){
+    std::cout << "Construct struct type" << std::endl;
+    this->SetType(type_struct);
+    this->name = TypeName;
+  }
+
+  std::string getName() { return name; }
+  std::string* getNamePtr() { return &name; }
 
   llvm::Value *codegen() override;
   Json::Value print() override;
@@ -335,10 +355,12 @@ public:
              bool global) : Var(std::move(Var)), Type(std::move(Type)), global(global) {
                assert(Var != nullptr);
                assert(Type != nullptr);
+               std::cout << "start DecExprAST " + std::string(Var->getName()) << std::endl;
                Var->SetType(Type->getType());
                Array = nullptr;
                this->SetType(type_Dec);
                Name = Var->getName();
+               std::cout << "end DecExprAST" << std::endl;
              }
 
   DecExprAST(ArrayDecAST* Array, 
@@ -578,6 +600,46 @@ public:
 
   llvm::Function *codegen();
   Json::Value print() override;
+};
+
+class StructAST : public ExprAST {
+  std::string Name;
+  std::vector<std::string> MemberNames;
+  std::vector<llvm::Type*> MemberTypes;
+  std::vector<int> MemberTypesInt;
+  llvm::StructType* StructType;
+public:
+  StructAST(std::string* Name, std::vector<ExprAST*>* Members);
+  llvm::Value* codegen() override;
+  Json::Value print() override;
+  void setStructType(llvm::StructType* StructType) {
+    this->StructType = StructType;
+  }
+  llvm::StructType* getStructType() {
+    return StructType;
+  }
+  std::vector<std::string>* getMemberNames() {
+    return &MemberNames;
+  }
+  std::vector<int> getMemberTypes() {
+    return MemberTypesInt;
+  }
+};
+
+class StructEleAST : public ExprAST {
+  std::string Name;
+  std::string eleName;
+  int eleType;
+public:
+  StructEleAST(const std::string &Name, const std::string &eleName)
+      : Name(Name), eleName(eleName) {
+          this->SetType(type_structEle);
+  }
+  llvm::Value* codegen() override;
+  Json::Value print() override;
+  int getEleType() {
+    return eleType;
+  }
 };
 
 /// PorgramAST - This class represents a Program, also used as root.

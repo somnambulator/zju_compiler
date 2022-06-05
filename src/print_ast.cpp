@@ -72,6 +72,11 @@ Json::Value DecExprAST::print(){
     if(Var) root["children"].append(Var->print());
     else if(Array) root["children"].append(Array->print());
     root["children"].append(Type->print());
+    if(global) {
+        root["global"] = true;
+    } else {
+        root["global"] = false;
+    }
     return root;
 }
 
@@ -166,5 +171,20 @@ Json::Value ProgramAST::print(){
     for (int i=ElementList.size()-1;i>=0;i--){
         root["children"].append(ElementList[i]->print());
     }
+    return root;
+}
+
+Json::Value StructAST::print(){
+    Json::Value root;
+    root["name"] = "StructAST:"+Name;
+    for(int i = MemberNames.size()-1;i>=0;i--){
+        root["children"].append(MemberNames[i]);
+    }
+    return root;
+}
+
+Json::Value StructEleAST::print() {
+    Json::Value root;
+    root["name"] = "StructEleAST:"+Name+" "+eleName;
     return root;
 }

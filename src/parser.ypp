@@ -36,6 +36,7 @@ ProgramAST* Program;
     std::string* Str;
 
     ast_list* AST_list;
+    st_ast_list* ST_AST_list;
     index_list* Index_list;
     ExprAST* exprAST;
     FunctionAST* functionAST;
@@ -64,6 +65,7 @@ ProgramAST* Program;
 // %type <> DefList Def Dec DecList                //  Local Definitions
 // %type <> Exp Args                               //  Expressions
 %type <AST_list> ExtDefList ExtDecList VarList DefList StmtList DecList Args IndexList
+%type <ST_AST_list> StructDecList
 %type <exprAST> ExtDef ReturnStmt Exp Stmt Dec ELIFStmt ExtDec
 %type <functionAST> MainDef
 %type <typeAST> Specifier
@@ -104,26 +106,30 @@ ExtDefList:         ExtDef ExtDefList                       { $$ = $2; $$->push_
 ExtDef:             ExtDecList SEMI                         { $$ = new GlobalDecListAST(std::move(*$1)); $$->setLineno(yylineno); }
     /* |               Specifier SEMI                          {  } */
     |               DEF FunDec COLON CompSt                 { $$ = new FunctionAST($2, $4); $$->setLineno(yylineno); }
+    |               STRUCT ID COLON LC StructDecList RC SEMI   { 
+        $$ = new StructAST($2, $5); 
+        $$->setLineno(yylineno); }
     ; 
 MainDef:            DEF MainFunDec COLON CompSt             { $$ = new FunctionAST($2, $4); $$->setLineno(yylineno); }
     ;
 ExtDecList:         ExtDec                                  { $$ = new ast_list(); $$->push_back(std::unique_ptr<ExprAST>($1)); }
-    |               ExtDec COMMA ExtDecList                 { $$ = $3; $$->push_back(std::unique_ptr<ExprAST>($1)); }
+    |               ExtDec COMMA ExtDecList                 { $$ = $3; $$->push_back(std::unique_ptr<ExprAST>($1)); std::cout << $$->size();}
+    ;
+StructDecList:         ExtDec                                  
+    { 
+        auto* tmp = new std::vector<ExprAST*>(); 
+        auto* ptr = static_cast<DecExprAST*>($1);
+        tmp->push_back($1);
+        $$ = tmp;
+    }
+    |               ExtDec COMMA StructDecList                 { $$ = $3; $$->push_back($1); std::cout << $$->size();}
     ; 
 ExtDec:             VarDec COLON Specifier                  { $$ = new DecExprAST($1, $3, 1); $$->setLineno(yylineno); }
     |               ExtArrayDec COLON Specifier             { $$ = new DecExprAST($1, $3, 1); $$->setLineno(yylineno); }
     ;
 // Specifiers
 Specifier:          TYPE                                    { $$ = new TypeAST(*$1); $$->setLineno(yylineno); }
-    /* |               StructSpecifier                         {  } */
-    ; 
-/* StructSpecifier:    STRUCT OptTag LC DefList RC             {  }
-    |               STRUCT Tag                              {  }
-    ; 
-OptTag:             ID                                      {  }
-    |                                                       {  }
-    ; 
-Tag:                ID                                      {  } */
+    |               STRUCT ID                               { $$ = new TypeAST(*$2, 0);}
     ; 
 // Global Array declaration
 ExtArrayDec:           ID LB RB                                { $$ = new ArrayDecAST(*$1); $$->setLineno(yylineno); }
@@ -157,9 +163,6 @@ ParamDec:           VarDec COLON Specifier                  { $$ = new DecExprAS
     |               ArrayDec COLON Specifier                { $$ = new DecExprAST($1, $3, 0); $$->setLineno(yylineno); }
     ; 
 // Statements
-/* CompSt:             LC VAR DefList STMT StmtList RC         { $$ = new BodyAST(std::move(*$3), std::move(*$5)); $$->setLineno(yylineno); }
-    |               LC VAR DefList STMT StmtList ReturnStmt RC { $$ = new BodyAST(std::move(*$3), std::move(*$5), $6); $$->setLineno(yylineno); }
-    ;  */
 CompSt:             LC StmtList RC         { $$ = new BodyAST(std::move(*$2)); $$->setLineno(yylineno); }
     |               LC StmtList ReturnStmt RC { $$ = new BodyAST(std::move(*$2), $3); $$->setLineno(yylineno); }
     ; 
@@ -215,7 +218,7 @@ Exp:                Exp ASSIGNOP Exp                        { $$ = new AssignExp
                                                               $$ = new CallExprAST(*$1, std::move(*void_args)); $$->setLineno(yylineno); }
     |               ID IndexList                            { $$ = new ArrayEleAST(*$1, std::move(*$2)); $$->setLineno(yylineno); }
     |               ID LB RB                                { $$ = new ArrayDecAST(*$1); $$->setLineno(yylineno); }
-    /* |               Exp DOT ID                              {  } */
+    |               ID DOT ID                              { $$ = new StructEleAST(*$1, *$3); $$->setLineno(yylineno); } 
     |               ID                                      { $$ = new VariableExprAST(*$1); $$->setLineno(yylineno); }
     |               INT                                     { $$ = new IntExprAST($1); $$->setLineno(yylineno); }
     |               FLOAT                                   { $$ = new FloatExprAST($1); $$->setLineno(yylineno); }
