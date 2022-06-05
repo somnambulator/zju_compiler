@@ -185,10 +185,11 @@ ELIFStmt:           ELIF LP Exp RP COLON Stmt ELIFStmt %prec LOWER_THAN_ELSE { $
     ;
 ReturnStmt:         RETURN Exp SEMI                         { $$ = $2; $$->setLineno(yylineno); }
     |               RETURN SEMI                             { $$ = new VoidExprAST(); $$->setLineno(yylineno); }
+    ;
 // Local Definitions
-DefList:            Def DefList                             { $$ = $2; $$->push_back(std::unique_ptr<ExprAST>($1)); }
+/* DefList:            Def DefList                             { $$ = $2; $$->push_back(std::unique_ptr<ExprAST>($1)); }
     |                                                       { $$ = new ast_list(); }
-    ;     
+    ;      */
 Def:                DecList SEMI                            { $$ = new DecListAST(std::move(*$1)); $$->setLineno(yylineno); }
     ; 
 DecList:            Dec                                     { $$ = new ast_list(); $$->push_back(std::unique_ptr<ExprAST>($1)); }

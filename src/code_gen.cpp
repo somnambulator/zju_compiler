@@ -160,7 +160,7 @@ llvm::Value *ArrayDecAST::codegen() {
     IntExprAST *zero = new IntExprAST(0);
     llvm::Value* Index = zero->codegen();
     llvm::Value* eleAddr = Builder.CreateInBoundsGEP(arrayptr, Index, "arrayStartAddr");
-    return Builder.CreateInBoundsGEP(arrayptr, Index, "arrayele");
+    return eleAddr;
   }
 }
 
@@ -613,8 +613,6 @@ llvm::Value* WhileExprAST::codegen(){
   llvm::BasicBlock *PreloopBB = Builder.GetInsertBlock();
   // Insert the conditional branch into the end of LoopEndBB.
   Builder.CreateCondBr(EndCond, LoopBB, AfterBB);
-  // Insert an explicit fall through from the current block to the LoopBB.
-  Builder.CreateBr(LoopBB);
   // Start insertion in LoopBB.
   Builder.SetInsertPoint(LoopBB);
   // Emit the body of the loop.  This, like any other expr, can change the
