@@ -1328,9 +1328,6 @@ llvm::Value* StructEleAST::codegen() {
 
 
 StructAST::StructAST(std::string *Name, st_ast_list* Members) : Name(*Name) {
-  for(int i = 0; i < 2; i++) {
-    std::cout << "Start Constructing StructAST" << std::endl;
-  }
   this->SetType(type_structDec);
   for(auto& member: *Members) {
     auto* member_dec = static_cast<DecExprAST*>(member);
@@ -1338,7 +1335,6 @@ StructAST::StructAST(std::string *Name, st_ast_list* Members) : Name(*Name) {
     MemberTypes.push_back(typeGen(member_dec->getDType()));
     MemberTypesInt.push_back(member_dec->getDType());
   }
-  std::cout << "End Constructing StructAST" << std::endl;
 }
 
 std::string ProgramAST::codegen(){

@@ -164,13 +164,11 @@ std::string name;
   
 public:
   TypeAST(const std::string &TypeName) {
-    std::cout << "Construct simple type" << std::endl;
     this->SetTypeStr(TypeName);
     this->name = TypeName;
   }
 
   TypeAST(const std::string &TypeName, bool flag){
-    std::cout << "Construct struct type" << std::endl;
     this->SetType(type_struct);
     this->name = TypeName;
   }
@@ -355,12 +353,10 @@ public:
              bool global) : Var(std::move(Var)), Type(std::move(Type)), global(global) {
                assert(Var != nullptr);
                assert(Type != nullptr);
-               std::cout << "start DecExprAST " + std::string(Var->getName()) << std::endl;
                Var->SetType(Type->getType());
                Array = nullptr;
                this->SetType(type_Dec);
                Name = Var->getName();
-               std::cout << "end DecExprAST" << std::endl;
              }
 
   DecExprAST(ArrayDecAST* Array, 
