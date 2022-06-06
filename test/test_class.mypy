@@ -1,0 +1,21 @@
+class Dog: {
+    a: int, b: float;
+    def __init__(self, a:int, b:float)->int:{
+        self.a = a;
+        self.b = b;
+    }
+    def test(self)->int:{
+        print(self.a);
+    }
+    def getb(self)->int:{
+        return self.b;
+    }
+};
+
+def main()->int: {
+    a: class Dog;
+    a.__init__(1, 2.0);
+    a.test();
+    print("\n");
+    print(a.getb());
+}
