@@ -129,7 +129,7 @@ MemberFuncDec:      DEF ID LP SELF RP FUNCSPEC Specifier    {
     $$ = new PrototypeAST($7, *$2, std::move(*tmp), "undefined"); 
 }
     |               DEF ID LP SELF COMMA VarList RP FUNCSPEC Specifier { 
-        auto self_type_ptr = new TypeAST("undefined", 0); 
+        auto self_type_ptr = new TypeAST("undefined", 1); 
         auto self_var_ptr = new VariableExprAST("self");
         auto self_ptr = new DecExprAST(self_var_ptr, self_type_ptr, 0);
         $6->push_back(std::unique_ptr<ExprAST>(self_ptr));

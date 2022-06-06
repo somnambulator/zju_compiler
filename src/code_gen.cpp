@@ -1079,7 +1079,7 @@ llvm::Value *CallExprAST::codegen() {
   }
   // Look up the name in the global module table.
   if (this->isMember) {
-    auto* tmp = static_cast<VariableExprAST*>(Args[0].get());
+    auto* tmp = static_cast<VariableExprAST*>(Args[Args.size()-1].get());
     auto* structAST = symbolTable.FindStructDec(tmp->getName());
     Callee = structAST->getName() + "::" + Callee;
   }

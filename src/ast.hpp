@@ -528,13 +528,6 @@ public:
   PrototypeAST(TypeAST* retType, const std::string &Name, ast_list Args, const std::string& structName)
       : retType(std::move(retType)), Name(Name), Args(std::move(Args)), structName(structName) {
           assert(retType!=nullptr);
-          std::cout<<"Name:"<<Name<<std::endl;
-          std::cout<<"Args:"<<std::endl;
-          std::cout <<this->Args.size()<<std::endl;
-          for(int i = 0; i < this->Args.size(); i++){
-            auto* tmp = static_cast<DecExprAST*>(this->Args[i].get());
-            std::cout<<tmp->getName()<<std::endl;
-          }
           // if (retType->getType()!=type_void){
           //   HasReturn = 1;
           // }
@@ -558,7 +551,7 @@ public:
   void setName(const std::string &Name) { this->Name = Name; }
   void setStructName(const std::string &structName) { 
     this->structName = structName; 
-    auto* tmp = static_cast<DecExprAST*>(Args[0].get());
+    auto* tmp = static_cast<DecExprAST*>(Args[Args.size()-1].get());
     tmp->setTypeName(structName);
   }
 };

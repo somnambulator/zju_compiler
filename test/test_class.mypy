@@ -1,7 +1,7 @@
 class Dog: {
     a: int, b: float;
-    def __init__(self)->int:{
-        self.a := 1;
+    def __init__(self, a:int)->int:{
+        self.a := a;
         self.b := 2.0;
     }
     def getb(self)->float:{
@@ -12,8 +12,7 @@ class Dog: {
 
 def main()->int: {
     a: class Dog;
-    a.__init__();
+    a.__init__(1);
     print(a.a);
-    print("\n");
     print(a.getb());
 }
