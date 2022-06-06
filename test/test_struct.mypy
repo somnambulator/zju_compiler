@@ -1,10 +1,18 @@
 struct Dog: {
-    a: int, b: float
+    a: int, b: float;
+    def test(self)->int:{
+        print(self.a);
+    }
+    def printb(self)->int:{
+        print(self.b);
+    }
 };
 
 def main()->int: {
     a: struct Dog;
     a.a := 1;
     a.b := 2.0;
-    print(a.a, "\n", a.b);
+    a.test();
+    print("\n");
+    a.printb();
 }

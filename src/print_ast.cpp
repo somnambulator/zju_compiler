@@ -66,6 +66,15 @@ Json::Value DecListAST::print(){
     return root;
 }
 
+Json::Value STDecListAST::print(){
+    Json::Value root;
+    root["name"] = "STDecListAST";
+    // for (int i=VarList.size()-1;i>=0;i--){
+    //     root["children"].append(VarList[i]->print());
+    // }
+    return root;
+}
+
 Json::Value DecExprAST::print(){
     Json::Value root;
     root["name"] = "DecExprAST";

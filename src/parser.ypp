@@ -46,13 +46,14 @@ ProgramAST* Program;
     VariableExprAST* variableexprAST;
     DecExprAST* decexprAST;
     DecListAST* declistAST;
+    STDecListAST* stdeclistAST;
     ArrayDecAST* arraydecAST;
     ArrayEleAST* arrayeleAST;
 }
 
 %token <Str> COLON COMMA LC RC FUNCSPEC SEMI STRUCT 
              IF WHILE FOR TYPE ELSE ELIF IN RANGE
-             DEF RETURN MAIN VAR STMT
+             DEF RETURN MAIN VAR STMT SELF
 %token <name> ID
 %token <int_val> INT
 %token <float_val> FLOAT
@@ -64,12 +65,12 @@ ProgramAST* Program;
 // %type <> CompSt StmtList Stmt                   //  Statements
 // %type <> DefList Def Dec DecList                //  Local Definitions
 // %type <> Exp Args                               //  Expressions
-%type <AST_list> ExtDefList ExtDecList VarList DefList StmtList DecList Args IndexList
-%type <ST_AST_list> StructDecList
-%type <exprAST> ExtDef ReturnStmt Exp Stmt Dec ELIFStmt ExtDec
+%type <AST_list> ExtDefList ExtDecList VarList DefList StmtList DecList Args IndexList 
+%type <ST_AST_list> StructDecList StructExtDecList
+%type <exprAST> ExtDef ReturnStmt Exp Stmt Dec ELIFStmt ExtDec StructExtDec
 %type <functionAST> MainDef
 %type <typeAST> Specifier
-%type <prototypeAST> FunDec MainFunDec
+%type <prototypeAST> FunDec MainFunDec MemberFuncDec
 %type <bodyAST> CompSt
 %type <variableexprAST> VarDec 
 %type <arraydecAST> ArrayDec ExtArrayDec
@@ -106,23 +107,41 @@ ExtDefList:         ExtDef ExtDefList                       { $$ = $2; $$->push_
 ExtDef:             ExtDecList SEMI                         { $$ = new GlobalDecListAST(std::move(*$1)); $$->setLineno(yylineno); }
     /* |               Specifier SEMI                          {  } */
     |               DEF FunDec COLON CompSt                 { $$ = new FunctionAST($2, $4); $$->setLineno(yylineno); }
-    |               STRUCT ID COLON LC StructDecList RC SEMI   { 
-        $$ = new StructAST($2, $5); 
-        $$->setLineno(yylineno); }
+    |               STRUCT ID COLON LC StructExtDecList RC SEMI   { 
+                    $$ = new StructAST($2, std::move(*$5)); 
+                    $$->setLineno(yylineno); }
     ; 
 MainDef:            DEF MainFunDec COLON CompSt             { $$ = new FunctionAST($2, $4); $$->setLineno(yylineno); }
     ;
 ExtDecList:         ExtDec                                  { $$ = new ast_list(); $$->push_back(std::unique_ptr<ExprAST>($1)); }
     |               ExtDec COMMA ExtDecList                 { $$ = $3; $$->push_back(std::unique_ptr<ExprAST>($1)); }
     ;
+StructExtDecList:   StructExtDec StructExtDecList           { $$ = $2; $$->push_back($1); }
+    |               StructExtDec                            { $$ = new st_ast_list(); $$->push_back($1); }
+StructExtDec:       StructDecList SEMI                          { $$ = new STDecListAST(std::move(*$1)); $$->setLineno(yylineno); }
+    |               MemberFuncDec COLON CompSt              { $$ = new FunctionAST($1, $3); $$->setLineno(yylineno);}
+MemberFuncDec:      DEF ID LP SELF RP FUNCSPEC Specifier    { 
+    auto* self_type_ptr = new TypeAST("undefined", 0); 
+    auto* self_var_ptr = new VariableExprAST("self");
+    auto* self_ptr = new DecExprAST(self_var_ptr, self_type_ptr, 0);
+    auto* tmp = new ast_list(); 
+    tmp->push_back(std::unique_ptr<ExprAST>(self_ptr)); 
+    $$ = new PrototypeAST($7, *$2, std::move(*tmp), "undefined"); 
+}
+    |               DEF ID LP SELF COMMA VarList RP FUNCSPEC Specifier { 
+        auto self_type_ptr = new TypeAST("undefined", 0); 
+        auto self_var_ptr = new VariableExprAST("self");
+        auto self_ptr = new DecExprAST(self_var_ptr, self_type_ptr, 0);
+        $6->push_back(std::unique_ptr<ExprAST>(self_ptr));
+        $$ = new PrototypeAST($9, *$2, std::move(*$6), "undefined"); 
+    }
 StructDecList:         ExtDec                                  
     { 
-        auto* tmp = new std::vector<ExprAST*>(); 
-        auto* ptr = static_cast<DecExprAST*>($1);
-        tmp->push_back($1);
+        auto* tmp = new st_ast_list(); 
+        tmp->push_back(($1));
         $$ = tmp;
     }
-    |               ExtDec COMMA StructDecList                 { $$ = $3; $$->push_back($1); }
+    |               ExtDec COMMA StructDecList                 { $$ = $3; $$->push_back(($1)); }
     ; 
 ExtDec:             VarDec COLON Specifier                  { $$ = new DecExprAST($1, $3, 1); $$->setLineno(yylineno); }
     |               ExtArrayDec COLON Specifier             { $$ = new DecExprAST($1, $3, 1); $$->setLineno(yylineno); }
@@ -220,6 +239,14 @@ Exp:                Exp ASSIGNOP Exp                        { $$ = new AssignExp
     |               ID IndexList                            { $$ = new ArrayEleAST(*$1, std::move(*$2)); $$->setLineno(yylineno); }
     |               ID LB RB                                { $$ = new ArrayDecAST(*$1); $$->setLineno(yylineno); }
     |               ID DOT ID                              { $$ = new StructEleAST(*$1, *$3); $$->setLineno(yylineno); } 
+    |               SELF DOT ID                            { $$ = new StructEleAST("self", *$3); $$->setLineno(yylineno); }
+    |               ID DOT ID LP Args RP                   { 
+        $5->push_back(std::move(std::make_unique<VariableExprAST>(*$1))); 
+        auto funcname = *$3; $$ = new CallExprAST(funcname, std::move(*$5), 1); }
+    |               ID DOT ID LP RP {
+        auto tmp = new ast_list();
+        tmp->push_back(std::move(std::make_unique<VariableExprAST>(*$1))); 
+        auto funcname = *$3; $$ = new CallExprAST(funcname, std::move(*tmp), 1); }
     |               ID                                      { $$ = new VariableExprAST(*$1); $$->setLineno(yylineno); }
     |               INT                                     { $$ = new IntExprAST($1); $$->setLineno(yylineno); }
     |               FLOAT                                   { $$ = new FloatExprAST($1); $$->setLineno(yylineno); }

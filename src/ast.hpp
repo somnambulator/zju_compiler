@@ -175,6 +175,7 @@ public:
 
   std::string getName() { return name; }
   std::string* getNamePtr() { return &name; }
+  void setName(std::string name) { this->name = name; }
 
   llvm::Value *codegen() override;
   Json::Value print() override;
@@ -335,6 +336,20 @@ class DecListAST : public ExprAST{
 public:
   DecListAST(ast_list List) : VarList(std::move(List)) {this->SetType(type_DecList);}
 
+  ast_list* getVarList() {return &VarList;}
+
+  llvm::Value *codegen() override;
+  Json::Value print() override;
+};
+
+class STDecListAST : public ExprAST{
+  st_ast_list VarList;
+
+public:
+  STDecListAST(st_ast_list List) : VarList(std::move(List)) {this->SetType(type_DecList);}
+
+  st_ast_list getVarList() {return VarList;}
+
   llvm::Value *codegen() override;
   Json::Value print() override;
 };
@@ -380,7 +395,13 @@ public:
   std::string getName() {return Name;}
   
   int getDType() {return Type->getType();}
+  std::string* getTypeName() {
+    return Type->getNamePtr();
+  }
   VariableExprAST* getVar() {return Var.get();}
+  void setTypeName(const std::string& name) {
+    Type->setName(name);
+  }
              
   llvm::Value *codegen() override;
   Json::Value print() override;
@@ -476,22 +497,6 @@ public:
   Json::Value print() override;
 };
 
-/// CallExprAST - Expression class for function calls.
-class CallExprAST : public ExprAST {
-  std::string Callee;
-  ast_list Args;
-
-public:
-  CallExprAST(const std::string &Callee,
-              ast_list Args)
-      : Callee(Callee), Args(std::move(Args)) {this->SetType(type_CallFunc);}
-
-  std::string getCallee() {return Callee;}
-
-  llvm::Value *codegen() override;
-  Json::Value print() override;
-};
-
 /// PrototypeAST - This class represents the "prototype" for a function,
 /// which captures its name, and its argument names (thus implicitly the number
 /// of arguments the function takes).
@@ -500,10 +505,20 @@ class PrototypeAST : public ExprAST{
   std::unique_ptr<TypeAST> retType;
   std::string Name;
   ast_list Args;
+  std::string structName;
 
 public:
   PrototypeAST(TypeAST* retType, const std::string &Name, ast_list Args)
       : retType(std::move(retType)), Name(Name), Args(std::move(Args)) {
+          assert(retType!=nullptr);
+          // if (retType->getType()!=type_void){
+          //   HasReturn = 1;
+          // }
+          this->SetType(type_FuncProto);
+        }
+  
+  PrototypeAST(TypeAST* retType, const std::string &Name, ast_list Args, const std::string& structName)
+      : retType(std::move(retType)), Name(Name), Args(std::move(Args)), structName(structName) {
           assert(retType!=nullptr);
           // if (retType->getType()!=type_void){
           //   HasReturn = 1;
@@ -515,6 +530,8 @@ public:
     return static_cast<DecExprAST*>(Args[i].get())->getDType();
   }
 
+  ExprAST* getStructName(int i);
+
   void setReturn(bool ret) { HasReturn = ret; }
   bool hasReturn() { return HasReturn; }
 
@@ -523,6 +540,12 @@ public:
   llvm::Function *codegen();
   Json::Value print() override;
   const std::string &getName() const { return Name; }
+  void setName(const std::string &Name) { this->Name = Name; }
+  void setStructName(const std::string &structName) { 
+    this->structName = structName; 
+    auto* tmp = static_cast<DecExprAST*>(Args[0].get());
+    tmp->setTypeName(structName);
+  }
 };
 
 /// BodyAST - This class represents a function body.
@@ -593,6 +616,12 @@ public:
           Proto->setReturn(Body->hasReturn());
           Body->setRetType(Proto->getRetType());
         }
+  void appendClassName(const std::string& structName) {
+    auto curName = Proto->getName();
+    auto newName = structName + "::" + curName;
+    Proto->setName(newName);
+    Proto->setStructName(structName);
+  }
 
   llvm::Function *codegen();
   Json::Value print() override;
@@ -604,8 +633,9 @@ class StructAST : public ExprAST {
   std::vector<llvm::Type*> MemberTypes;
   std::vector<int> MemberTypesInt;
   llvm::StructType* StructType;
+  std::vector<FunctionAST*> MemberFunctions;
 public:
-  StructAST(std::string* Name, std::vector<ExprAST*>* Members);
+  StructAST(std::string* Name, st_ast_list Members);
   llvm::Value* codegen() override;
   Json::Value print() override;
   void setStructType(llvm::StructType* StructType) {
@@ -620,7 +650,34 @@ public:
   std::vector<int> getMemberTypes() {
     return MemberTypesInt;
   }
+  std::string getName() {
+    return Name;
+  }
 };
+
+/// CallExprAST - Expression class for function calls.
+class CallExprAST : public ExprAST {
+  std::string Callee;
+  ast_list Args;
+  bool isMember;
+
+public:
+  CallExprAST(const std::string &Callee,
+              ast_list Args)
+      : Callee(Callee), Args(std::move(Args)) {this->SetType(type_CallFunc);}
+
+  CallExprAST(const std::string &Callee,
+              ast_list Args,
+              bool isMember)
+      : Callee(Callee), Args(std::move(Args)), isMember(isMember) {this->SetType(type_CallFunc);}
+
+  std::string getCallee() {return Callee;}
+
+  llvm::Value *codegen() override;
+  Json::Value print() override;
+};
+
+
 
 class StructEleAST : public ExprAST {
   std::string Name;

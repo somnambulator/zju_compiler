@@ -290,6 +290,8 @@ llvm::Value *DecListAST::codegen(){
   }
 }
 
+llvm::Value* STDecListAST::codegen() {}
+
 llvm::GlobalVariable *createGlob(std::string name, int dType) {
   TheModule->getOrInsertGlobal(name, typeGen(dType));
   llvm::GlobalVariable *gVar = TheModule->getNamedGlobal(name);
@@ -1067,6 +1069,11 @@ llvm::Value *CallExprAST::codegen() {
     return FuncRead(this->getLineno(), std::move(Args));
   }
   // Look up the name in the global module table.
+  if (this->isMember) {
+    auto* tmp = static_cast<VariableExprAST*>(Args[0].get());
+    auto* structAST = symbolTable.FindStructDec(tmp->getName());
+    Callee = structAST->getName() + "::" + Callee;
+  }
   llvm::Function *CalleeF = getFunction(Callee);
   if (!CalleeF)
     return LogErrorV(this->getLineno(), std::string("Unknown function referenced"));
@@ -1105,8 +1112,9 @@ llvm::Function *PrototypeAST::codegen() {
   }
   else{
     for (int i=0;i<Args.size();i++){
-      int type = static_cast<DecExprAST*>(Args[i].get())->getDType();
-      Arg_List.push_back(typeGen(type));
+      auto* tmp = static_cast<DecExprAST*>(Args[i].get());
+      int type = tmp->getDType();
+      Arg_List.push_back(typeGen(type, tmp->getTypeName()));
     }
     FT = llvm::FunctionType::get(typeGen(returnType), Arg_List, false);
   }
@@ -1190,6 +1198,7 @@ llvm::Value *BodyAST::codegen() {
 
 llvm::Function *FunctionAST::codegen() {
   // First, check for an existing function from a previous 'extern' declaration.
+  std::cout << "Constructing function: " + Proto->getName() << std::endl;
   llvm::Function *TheFunction = getFunction(Proto->getName());
 
   if (!TheFunction)
@@ -1218,6 +1227,10 @@ llvm::Function *FunctionAST::codegen() {
     if (Proto->getArgType(i) == type_intptr || Proto->getArgType(i) == type_floatptr){
       symbolTable.addLocalVal(Arg.getName().str(), &Arg);
     } 
+    else if(Proto->getArgType(i) == type_struct) {
+      symbolTable.addLocalVal(Arg.getName().str(), Alloca);
+      symbolTable.mapStruct(Arg.getName().str(), static_cast<StructAST*>(Proto->getStructName(i)));
+    }
     else {
       symbolTable.addLocalVal(Arg.getName().str(), Alloca);
     }
@@ -1287,6 +1300,9 @@ llvm::Value* StructAST::codegen() {
   else{
     symbolTable.addStruct(this->Name, this);
   }
+  for(auto* member: this->MemberFunctions) {
+    member->codegen();
+  }
 }
 
 llvm::Value* StructEleAST::codegen() {
@@ -1327,14 +1343,37 @@ llvm::Value* StructEleAST::codegen() {
 }
 
 
-StructAST::StructAST(std::string *Name, st_ast_list* Members) : Name(*Name) {
+StructAST::StructAST(std::string *Name, st_ast_list Members) : Name(*Name) {
   this->SetType(type_structDec);
-  for(auto& member: *Members) {
-    auto* member_dec = static_cast<DecExprAST*>(member);
-    MemberNames.push_back(member_dec->getName()); 
-    MemberTypes.push_back(typeGen(member_dec->getDType()));
-    MemberTypesInt.push_back(member_dec->getDType());
+  // for(auto& member: *Members) {
+  //   auto* member_dec = static_cast<DecExprAST*>(member);
+  //   MemberNames.push_back(member_dec->getName()); 
+  //   MemberTypes.push_back(typeGen(member_dec->getDType()));
+  //   MemberTypesInt.push_back(member_dec->getDType());
+  // }
+  for(auto& member: Members) {
+    if(member->getType() == type_DecList) {
+      auto* tmp = static_cast<STDecListAST*>(member);
+      auto varlist = tmp->getVarList();
+      for(auto& var: varlist) {
+        auto* var_dec = static_cast<DecExprAST*>(var);
+        MemberNames.push_back(var_dec->getName()); 
+        MemberTypes.push_back(typeGen(var_dec->getDType()));
+        MemberTypesInt.push_back(var_dec->getDType());
+      }
+    } else if(member->getType() == type_Func) {
+       auto* tmp = static_cast<FunctionAST*>(member); 
+       tmp->appendClassName(*Name);
+       this->MemberFunctions.push_back(tmp);
+    }
   }
+}
+
+ExprAST* PrototypeAST::getStructName(int i) {
+  auto* tmp = static_cast<DecExprAST*>(Args[i].get());
+  auto* name = tmp->getTypeName();
+  auto* ret = symbolTable.FindStruct(*name);
+  return static_cast<ExprAST*>(ret);
 }
 
 std::string ProgramAST::codegen(){
