@@ -121,7 +121,7 @@ StructExtDecList:   StructExtDec StructExtDecList           { $$ = $2; $$->push_
 StructExtDec:       StructDecList SEMI                          { $$ = new STDecListAST(std::move(*$1)); $$->setLineno(yylineno); }
     |               MemberFuncDec COLON CompSt              { $$ = new FunctionAST($1, $3); $$->setLineno(yylineno);}
 MemberFuncDec:      DEF ID LP SELF RP FUNCSPEC Specifier    { 
-    auto* self_type_ptr = new TypeAST("undefined", 0); 
+    auto* self_type_ptr = new TypeAST("undefined", 1); 
     auto* self_var_ptr = new VariableExprAST("self");
     auto* self_ptr = new DecExprAST(self_var_ptr, self_type_ptr, 0);
     auto* tmp = new ast_list(); 

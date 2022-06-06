@@ -44,6 +44,7 @@
 #define type_arrayParam 12
 #define type_struct 13
 #define type_structEle 14
+#define type_structptr 15
 
 #define type_ID 100
 #define type_binaryExpr 101
@@ -131,6 +132,9 @@ public:
     case type_struct:
       ret = "Struct";
       break;
+    case type_structptr:
+      ret = "Struct Pointer";
+      break;
     default:
       ret = "Unknown Type";
       break;
@@ -169,7 +173,11 @@ public:
   }
 
   TypeAST(const std::string &TypeName, bool flag){
-    this->SetType(type_struct);
+    if(flag == 0) {
+      this->SetType(type_struct);
+    } else {
+      this->SetType(type_structptr);
+    }
     this->name = TypeName;
   }
 
@@ -520,6 +528,13 @@ public:
   PrototypeAST(TypeAST* retType, const std::string &Name, ast_list Args, const std::string& structName)
       : retType(std::move(retType)), Name(Name), Args(std::move(Args)), structName(structName) {
           assert(retType!=nullptr);
+          std::cout<<"Name:"<<Name<<std::endl;
+          std::cout<<"Args:"<<std::endl;
+          std::cout <<this->Args.size()<<std::endl;
+          for(int i = 0; i < this->Args.size(); i++){
+            auto* tmp = static_cast<DecExprAST*>(this->Args[i].get());
+            std::cout<<tmp->getName()<<std::endl;
+          }
           // if (retType->getType()!=type_void){
           //   HasReturn = 1;
           // }
@@ -633,6 +648,7 @@ class StructAST : public ExprAST {
   std::vector<llvm::Type*> MemberTypes;
   std::vector<int> MemberTypesInt;
   llvm::StructType* StructType;
+  llvm::PointerType* StructPtrType;
   std::vector<FunctionAST*> MemberFunctions;
 public:
   StructAST(std::string* Name, st_ast_list Members);
@@ -641,8 +657,14 @@ public:
   void setStructType(llvm::StructType* StructType) {
     this->StructType = StructType;
   }
+  void setStructPtrType(llvm::PointerType* StructPtrType) {
+    this->StructPtrType = StructPtrType;
+  }
   llvm::StructType* getStructType() {
     return StructType;
+  }
+  llvm::PointerType* getStructPtrType() {
+    return StructPtrType;
   }
   std::vector<std::string>* getMemberNames() {
     return &MemberNames;

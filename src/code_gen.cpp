@@ -47,6 +47,8 @@ llvm::Type *typeGen(int type, std::string* name=nullptr){
       return Type_String;
     case type_struct:
       return symbolTable.FindStruct(*name)->getStructType();
+    case type_structptr:
+      return symbolTable.FindStruct(*name)->getStructPtrType();
     default:
       return llvm::Type::getInt32Ty(TheContext);
   }
@@ -255,7 +257,7 @@ llvm::Value *VariableExprAST::codegen() {
   }
   //set type recursively
   this->SetType(symbolTable.getType(Name));
-  if(symbolTable.getType(Name)!=type_string){
+  if(symbolTable.getType(Name)!=type_string and symbolTable.getType(Name) != type_struct) {
     return Builder.CreateLoad(V, Name.c_str());
   }
   else{
@@ -682,6 +684,9 @@ llvm::Value *AssignExprAST::codegen(){
   if(RHS->getType() == type_arrayEle){
     RHSVal = Builder.CreateLoad(RHS->codegen(), "arrayElement");
   }
+  else if(RHS->getType() == type_structEle) {
+    RHSVal = Builder.CreateLoad(RHS->codegen(), "structElement");
+  }
   else{
     RHSVal = RHS->codegen();
   }
@@ -701,6 +706,10 @@ llvm::Value *AssignExprAST::codegen(){
 
   // get the data type of expression recursicely
   RType = RHS->getType();
+  if(RType == type_structEle) {
+    auto* tmp = static_cast<StructEleAST*>(RHS.get());
+    RType = tmp->getEleType();
+  }
   if(LType == type_string && RType == type_string){
     llvm::Value* RHSstr = Builder.CreateLoad(RHSVal, "assigntmpstr");
     std::vector<llvm::Value*> index_vector;
@@ -1230,6 +1239,9 @@ llvm::Function *FunctionAST::codegen() {
     else if(Proto->getArgType(i) == type_struct) {
       symbolTable.addLocalVal(Arg.getName().str(), Alloca);
       symbolTable.mapStruct(Arg.getName().str(), static_cast<StructAST*>(Proto->getStructName(i)));
+    } else if(Proto->getArgType(i) == type_structptr) {
+      symbolTable.addLocalVal(Arg.getName().str(), &Arg);
+      symbolTable.mapStruct(Arg.getName().str(), static_cast<StructAST*>(Proto->getStructName(i)));
     }
     else {
       symbolTable.addLocalVal(Arg.getName().str(), Alloca);
@@ -1288,7 +1300,9 @@ llvm::Value* StructAST::codegen() {
   */
   llvm::ArrayRef<llvm::Type*> StructFields(this->MemberTypes);
   auto* StructTy = llvm::StructType::create(TheContext, StructFields, this->Name, false);
+  auto* StructPtrTy = llvm::PointerType::getUnqual(StructTy);
   this->setStructType(StructTy);
+  this->setStructPtrType(StructPtrTy);
 
   // symbol table
   auto* structSymbol = symbolTable.FindStruct(this->Name);
